@@ -1,6 +1,6 @@
 ﻿namespace NeaClient
 {
-    partial class Chat
+    partial class frmChat
     {
         /// <summary>
         /// Required designer variable.
