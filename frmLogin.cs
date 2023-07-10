@@ -7,6 +7,7 @@ namespace NeaClient
     public partial class frmLogin : Form
     {
         public string token;
+        public string server;
         public frmLogin()
         {
             InitializeComponent();
@@ -32,7 +33,7 @@ namespace NeaClient
             catch
             {
                 response = new HttpResponseMessage();
-                MessageBox.Show("Could not connect to server: " + txtServerAddress.Text);
+                MessageBox.Show("Could not connect to " + txtServerAddress.Text);
                 return;                    
             }
 
@@ -42,8 +43,22 @@ namespace NeaClient
             if (jsonResponseObject.token is not null)
             {
                 token = jsonResponseObject.token.ToString();
-                this.Close();
+                server = txtServerAddress.Text;
+                Close();
             }
+            else if (jsonResponseObject.errcode == "NAME_IN_USE")
+            {
+                MessageBox.Show("That username is taken: try adding numbers and symbols to make it unique, or press login if you already have an account.");
+            }
+            else
+            {
+                MessageBox.Show("Unknown error: " + jsonResponseObject.errcode);
+            }
+        }
+
+        private void richTextBox1_TextChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
