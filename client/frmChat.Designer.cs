@@ -178,7 +178,7 @@
             // createGuildToolStripMenuItem
             // 
             this.createGuildToolStripMenuItem.Name = "createGuildToolStripMenuItem";
-            this.createGuildToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.createGuildToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
             this.createGuildToolStripMenuItem.Text = "Create Guild";
             this.createGuildToolStripMenuItem.Click += new System.EventHandler(this.createGuildToolStripMenuItem_Click);
             // 
@@ -229,6 +229,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "frmChat";
             this.Text = "Home";
+            this.Load += new System.EventHandler(this.frmChat_Load);
             this.pnlGuilds.ResumeLayout(false);
             this.pnlGuilds.PerformLayout();
             this.menuStrip1.ResumeLayout(false);

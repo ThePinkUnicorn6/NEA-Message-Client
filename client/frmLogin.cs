@@ -8,6 +8,7 @@ namespace NeaClient
     {
         public string token;
         public string server;
+        public HttpClient client;
         public frmLogin()
         {
             InitializeComponent();
@@ -16,9 +17,36 @@ namespace NeaClient
         {
             return Convert.ToBase64String(SHA256.HashData(Encoding.UTF8.GetBytes(plaintext)));
         }
-        private void btnLogin_Click(object sender, EventArgs e)
+        private async void btnLogin_Click(object sender, EventArgs e)
         {
-
+            string passHash = hash(txtPassword.Text);
+            server = txtServerAddress.Text.Take(7).ToArray() == "http://".ToArray() ? txtServerAddress.Text.Remove(0, 7) : txtServerAddress.Text; // Remove http:// if it is in the url.
+            HttpResponseMessage response;
+            try
+            {
+                client = new() { BaseAddress = new Uri("http://" + txtServerAddress.Text) };
+                response = await client.GetAsync("/api/account/login?userName=" + txtUsername.Text + "&passHash=" + passHash);
+            }
+            catch
+            {
+                response = new HttpResponseMessage();
+                MessageBox.Show("Could not connect to " + txtServerAddress.Text);
+                return;
+            }
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+            
+            if (jsonResponseObject.token is not null)
+            {
+                token = jsonResponseObject.token.ToString();
+                server = txtServerAddress.Text;
+                
+                Close();
+            }
+            else
+            {
+                MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString());
+            }
         }
 
         private async void btnCreateAccount_Click(object sender, EventArgs e)
@@ -34,12 +62,10 @@ namespace NeaClient
             {
                 response = new HttpResponseMessage();
                 MessageBox.Show("Could not connect to " + txtServerAddress.Text);
-                return;                    
+                return;
             }
-
             var jsonResponse = await response.Content.ReadAsStringAsync();
             dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-            
             if (jsonResponseObject.token is not null)
             {
                 token = jsonResponseObject.token.ToString();
@@ -54,11 +80,6 @@ namespace NeaClient
             {
                 MessageBox.Show("Unknown error: " + jsonResponseObject.errcode);
             }
-        }
-
-        private void richTextBox1_TextChanged(object sender, EventArgs e)
-        {
-
         }
     }
 }

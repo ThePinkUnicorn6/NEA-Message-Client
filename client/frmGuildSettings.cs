@@ -31,8 +31,11 @@ namespace NeaClient
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 if (response.IsSuccessStatusCode)
                 {
-                    dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                    response = await request.GetAsync("/api/guild/setDetails?token=" + serverDetails[1] + "&guildID=" + jsonResponseObject.GuildID.ToString() + "&guildDesc=" + txtGuildDescription.Text);
+                    if (!string.IsNullOrWhiteSpace(txtGuildDescription.Text)) // If description is not empty, send it to server.
+                    {
+                        dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                        response = await request.GetAsync("/api/guild/setDetails?token=" + serverDetails[1] + "&guildID=" + jsonResponseObject.GuildID.ToString() + "&guildDesc=" + txtGuildDescription.Text);
+                    }
                     Close();
                 }
                 else
