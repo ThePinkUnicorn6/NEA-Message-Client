@@ -13,45 +13,56 @@ namespace NeaClient
 {
     public partial class frmChat : Form
     {
-        List<Message> messages = new List<Message>();
+        List<Message> messages = new List<Message>(); // Used to store all the loaded messages of the currently active channel.
         List<Guild> guilds = new List<Guild>();
         List<string[]> tokens;
-        int activeToken = 0;
-        User activeUser = new User();
+        int activeToken = 0; // Used to store the index of the token currently in use in the list tokens.
+        User activeUser = new User(); // Used to store the information of the logged in user.
         HttpClient client;
         public frmChat()
         {
             InitializeComponent();
+        }
+        private async void frmChat_Load(object sender, EventArgs e)
+        {
             try
             {
+                if (File.ReadAllText("tokens.csv") == "") // If the tokens file has no tokens open the login page.
+                {
+                    addLogin();
+                }
                 tokens = File.ReadLines("tokens.csv").Select(x => x.Split(',')).ToList();
             }
             catch // If the tokens file does not exist, open the login page.
             {
                 addLogin();
             }
-            if (tokens.Count == 0)
+            if (tokens.Count == 0) // If the login page has not added any tokens, the user must have closed it, so close the program.
             {
-                Close();
+                this.Close();
+                return; // Return, otherwise it starts running the next code and errors.
             }
-            else
-            {
-                if (tokens[0][0].Length < 1) // If the tokens file has no tokens, open the login page.
-                {
-                    addLogin();
-                }
-            }
-        }
-        private async void frmChat_Load(object sender, EventArgs e)
-        {
             client = new() { BaseAddress = new Uri("http://" + tokens[activeToken][0]) };
+            activeUser = new User 
+            {
+
+            };
             bool fillGuildSidebarSuccess;
             int count = 0;
             do
             {
                 fillGuildSidebarSuccess = await fillGuildSidebar();
                 count++;
+                if (count == 5)
+                {
+                    DialogResult retry = MessageBox.Show("Could not connect to " + tokens[activeToken][0] + ". Would you like to try again?", "Connection Error", MessageBoxButtons.YesNo);
+                    if (retry == DialogResult.Yes)
+                    {
+                        count = 0;
+                    }
+                }
             } while (fillGuildSidebarSuccess == false && count <= 5);
+
         }
         public async Task<bool> fillGuildSidebar()
         {
@@ -64,7 +75,6 @@ namespace NeaClient
             }
             catch
             {
-                MessageBox.Show("Could not connect to " + tokens[activeToken][0]);
                 successfullConnection = false;
             }
             if (successfullConnection)
@@ -100,19 +110,20 @@ namespace NeaClient
                             });
                         }
                     }
-                    catch 
-                    {
-
-                    }
+                    catch { } // Only used if when the user is in no guilds and nothing needs to happen.
                     
                     tvGuilds.BeginUpdate();
                     tvGuilds.Nodes.Clear();
                     foreach (Guild guild in guilds)
                     {
-                        tvGuilds.Nodes.Add(new TreeNode (guild.Name));
+                        TreeNode tempNode = new TreeNode(guild.Name);
+                        tempNode.Tag = guild;
+                        tvGuilds.Nodes.Add(tempNode);
                         foreach (Channel channel in guild.Channels)
                         {
-                            tvGuilds.Nodes[guilds.IndexOf(guild)].Nodes.Add(new TreeNode (channel.Name));
+                            tempNode = new TreeNode(channel.Name);
+                            tempNode.Tag = channel;
+                            tvGuilds.Nodes[guilds.IndexOf(guild)].Nodes.Add(tempNode);
                         }
                     }
                     tvGuilds.EndUpdate();
@@ -120,7 +131,7 @@ namespace NeaClient
                 else if (jsonResponseObject.errcode.ToString() == "INVALID_TOKEN")
                 {
                     successfullConnection = false;
-                    addLogin();
+                    addLogin(true);
                 }
                 else
                 {
@@ -130,7 +141,7 @@ namespace NeaClient
             }
             return successfullConnection;
         }
-        public void addLogin()
+        public void addLogin(bool removeInvalid = false)
         {
             string token;
             string server;
@@ -140,7 +151,6 @@ namespace NeaClient
                 token = frmLogin.token;
                 server = frmLogin.server;
                 this.client = frmLogin.client;
-                frmLogin.Dispose();
             }
             if (File.Exists("tokens.csv")) // Checks if a token file has been created, and readse its contents if it has.
             {
@@ -154,6 +164,7 @@ namespace NeaClient
             {
                 tokens.Add(new string[] { server, token });
                 File.AppendAllText("tokens.csv", tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] + "\r\n");
+                if (removeInvalid == true) removeToken(activeToken);
                 activeToken = tokens.Count - 1;
             }
         }
@@ -175,8 +186,8 @@ namespace NeaClient
             if (string.IsNullOrWhiteSpace(txtMessageText.Text)) { return; } // Do nothing if text box is empty.
             Message message = new Message()
             {
-                UserName = activeUser.UserName,
-                UserID = activeUser.UserID,
+                UserName = activeUser.Name,
+                UserID = activeUser.ID,
                 Text = txtMessageText.Text
             };
             // Send message to server.
@@ -186,6 +197,10 @@ namespace NeaClient
             //    displayMessage(message);
             //    txtMessageText.Text = "";
             //}
+
+        }
+        private void displayChannel(string channelID)
+        {
 
         }
         private void displayMessage(Message message)
@@ -211,10 +226,6 @@ namespace NeaClient
                 tblMessages.VerticalScroll.Value = tblMessages.VerticalScroll.Maximum;
             }
         }
-        private void sendRequest(string URL)
-        {
-
-        }
 
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -232,12 +243,7 @@ namespace NeaClient
 
         private void addAccountToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            addLogin();
-        }
-
-        private void button1_Click(object sender, EventArgs e)
-        {
-
+            addLogin(false);
         }
 
         private void createGuildToolStripMenuItem_Click(object sender, EventArgs e)
@@ -245,6 +251,12 @@ namespace NeaClient
             Form frmGuildSettings = new frmGuildSettings(tokens[activeToken]);
             frmGuildSettings.ShowDialog();
             fillGuildSidebar();
+        }
+
+        private void tvGuilds_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            Channel channel = (Channel)e.Node.Tag;
+            displayChannel(channel.ID);
         }
     }
 }

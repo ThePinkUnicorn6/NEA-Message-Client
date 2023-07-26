@@ -24,7 +24,7 @@ namespace NeaClient
             HttpResponseMessage response;
             try
             {
-                client = new() { BaseAddress = new Uri("http://" + txtServerAddress.Text) };
+                client = new() { BaseAddress = new Uri("http://" + server) };
                 response = await client.GetAsync("/api/account/login?userName=" + txtUsername.Text + "&passHash=" + passHash);
             }
             catch
@@ -52,10 +52,11 @@ namespace NeaClient
         private async void btnCreateAccount_Click(object sender, EventArgs e)
         {
             string passHash = hash(txtPassword.Text);
+            server = txtServerAddress.Text.Take(7).ToArray() == "http://".ToArray() ? txtServerAddress.Text.Remove(0, 7) : txtServerAddress.Text; // Remove http:// if it is in the url.
             HttpResponseMessage response;
             try
             {
-                HttpClient request = new() { BaseAddress = new Uri("http://" + txtServerAddress.Text) };
+                HttpClient request = new() { BaseAddress = new Uri("http://" + server) };
                 response = await request.GetAsync("/api/account/create?userName=" + txtUsername.Text + "&password=" + passHash + "&publicKey=''");
             }
             catch

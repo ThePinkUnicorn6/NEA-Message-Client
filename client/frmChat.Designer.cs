@@ -70,6 +70,7 @@
             this.tvGuilds.Name = "tvGuilds";
             this.tvGuilds.Size = new System.Drawing.Size(247, 594);
             this.tvGuilds.TabIndex = 1;
+            this.tvGuilds.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvGuilds_NodeMouseClick);
             // 
             // txtSearch
             // 
@@ -117,7 +118,6 @@
             this.btnSend.TabIndex = 3;
             this.btnSend.Text = "Send";
             this.btnSend.UseVisualStyleBackColor = true;
-            this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
             // 
             // btnEditor
             // 
@@ -128,7 +128,6 @@
             this.btnEditor.TabIndex = 5;
             this.btnEditor.Text = "+";
             this.btnEditor.UseVisualStyleBackColor = true;
-            this.btnEditor.Click += new System.EventHandler(this.button1_Click);
             // 
             // menuStrip1
             // 
@@ -138,6 +137,7 @@
             this.privateChatsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
             this.menuStrip1.Size = new System.Drawing.Size(1305, 24);
             this.menuStrip1.TabIndex = 6;
             this.menuStrip1.Text = "menuStrip1";

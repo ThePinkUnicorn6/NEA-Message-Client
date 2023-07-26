@@ -8,8 +8,8 @@ namespace NeaClient
 {
     internal class User
     {
-        public string UserID { get; set; }
-        public string UserName { get; set; }
+        public string ID { get; set; }
+        public string Name { get; set; }
         public string Picture { get; set; }
         public string Description { get; set; }
     }
