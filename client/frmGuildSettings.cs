@@ -21,7 +21,11 @@ namespace NeaClient
             this.serverDetails = serverDetails;
             this.guildID = guildID;
         }
-        public async void newGuild()
+        private void frmGuildSettings_Load(object sender, EventArgs e)
+        {
+
+        }
+        private async void newGuild()
         {
             HttpResponseMessage response;
             try
@@ -29,27 +33,28 @@ namespace NeaClient
                 HttpClient request = new() { BaseAddress = new Uri("http://" + serverDetails[0]) };
                 response = await request.GetAsync("/api/guild/create?token=" + serverDetails[1] + "&guildName=" + txtGuildName.Text);
                 var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+
                 if (response.IsSuccessStatusCode)
                 {
                     if (!string.IsNullOrWhiteSpace(txtGuildDescription.Text)) // If description is not empty, send it to server.
                     {
-                        dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                         response = await request.GetAsync("/api/guild/setDetails?token=" + serverDetails[1] + "&guildID=" + jsonResponseObject.GuildID.ToString() + "&guildDesc=" + txtGuildDescription.Text);
                     }
                     Close();
                 }
                 else
                 {
-                    MessageBox.Show("Failed to create guild, error from server: " + jsonResponse);
+                    MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
             catch
             {
                 response = new HttpResponseMessage();
-                MessageBox.Show("Could not connect to " + serverDetails[0]);
+                MessageBox.Show("Could not connect to " + serverDetails[0], "Connection Error.");
             }
         }
-        public async void editGuild()
+        private async void editGuild()
         {
             HttpResponseMessage response;
             try
@@ -60,7 +65,7 @@ namespace NeaClient
             catch
             {
                 response = new HttpResponseMessage();
-                MessageBox.Show("Could not connect to " + serverDetails[0]);
+                MessageBox.Show("Could not connect to " + serverDetails[0], "Connection Error.");
                 return;
             }
         }

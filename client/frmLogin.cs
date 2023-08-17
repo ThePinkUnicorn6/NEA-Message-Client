@@ -30,7 +30,7 @@ namespace NeaClient
             catch
             {
                 response = new HttpResponseMessage();
-                MessageBox.Show("Could not connect to " + txtServerAddress.Text);
+                MessageBox.Show("Could not connect to " + txtServerAddress.Text, "Connection Error.");
                 return;
             }
             var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -45,7 +45,7 @@ namespace NeaClient
             }
             else
             {
-                MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString());
+                MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -57,12 +57,12 @@ namespace NeaClient
             try
             {
                 HttpClient request = new() { BaseAddress = new Uri("http://" + server) };
-                response = await request.GetAsync("/api/account/create?userName=" + txtUsername.Text + "&password=" + passHash + "&publicKey=''");
+                response = await request.GetAsync("/api/account/create?userName=" + txtUsername.Text + "&passHash=" + passHash + "&publicKey=''");
             }
             catch
             {
                 response = new HttpResponseMessage();
-                MessageBox.Show("Could not connect to " + txtServerAddress.Text);
+                MessageBox.Show("Could not connect to " + txtServerAddress.Text, "Connection Error.");
                 return;
             }
             var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -79,7 +79,7 @@ namespace NeaClient
             }
             else
             {
-                MessageBox.Show("Unknown error: " + jsonResponseObject.errcode);
+                MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

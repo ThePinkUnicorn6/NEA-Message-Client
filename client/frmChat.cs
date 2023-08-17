@@ -15,10 +15,12 @@ namespace NeaClient
     {
         List<Message> messages = new List<Message>(); // Used to store all the loaded messages of the currently active channel.
         List<Guild> guilds = new List<Guild>();
+        string activeChannelID;
         List<string[]> tokens;
         int activeToken = 0; // Used to store the index of the token currently in use in the list tokens.
         User activeUser = new User(); // Used to store the information of the logged in user.
         HttpClient client;
+        int lastMessageTime;
         public frmChat()
         {
             InitializeComponent();
@@ -51,7 +53,9 @@ namespace NeaClient
             int count = 0;
             do
             {
+                UseWaitCursor = true;
                 fillGuildSidebarSuccess = await fillGuildSidebar();
+                UseWaitCursor = false;
                 count++;
                 if (count == 5)
                 {
@@ -59,6 +63,10 @@ namespace NeaClient
                     if (retry == DialogResult.Yes)
                     {
                         count = 0;
+                    }
+                    else
+                    {
+                        Close();
                     }
                 }
             } while (fillGuildSidebarSuccess == false && count <= 5);
@@ -117,12 +125,12 @@ namespace NeaClient
                     foreach (Guild guild in guilds)
                     {
                         TreeNode tempNode = new TreeNode(guild.Name);
-                        tempNode.Tag = guild;
+                        tempNode.Tag = guild; // Store the guild in the node tag so it can be identified when clicked on.
                         tvGuilds.Nodes.Add(tempNode);
                         foreach (Channel channel in guild.Channels)
                         {
                             tempNode = new TreeNode(channel.Name);
-                            tempNode.Tag = channel;
+                            tempNode.Tag = channel; // Store the channel in the node tag so it can be identified when clicked on.
                             tvGuilds.Nodes[guilds.IndexOf(guild)].Nodes.Add(tempNode);
                         }
                     }
@@ -135,7 +143,7 @@ namespace NeaClient
                 }
                 else
                 {
-                    MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString());
+                    MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
                     successfullConnection = false;
                 }
             }
@@ -167,6 +175,7 @@ namespace NeaClient
                 if (removeInvalid == true) removeToken(activeToken);
                 activeToken = tokens.Count - 1;
             }
+            tvGuilds.Nodes.Clear();
         }
         public void removeToken(int tokenIndex)
         {
@@ -181,33 +190,110 @@ namespace NeaClient
         {
             sendMessage();
         }
-        private void sendMessage()
+        private async Task sendMessage()
         {
-            if (string.IsNullOrWhiteSpace(txtMessageText.Text)) { return; } // Do nothing if text box is empty.
-            Message message = new Message()
+            Message message = new Message
             {
-                UserName = activeUser.Name,
-                UserID = activeUser.ID,
-                Text = txtMessageText.Text
+                Text = txtMessageText.Text,
+                ChannelID = activeChannelID,
             };
-            // Send message to server.
+            if (string.IsNullOrWhiteSpace(message.Text)) { return; } // Do nothing if text box is empty.
 
-            //if (jsonResponseObject.MessageID is not null)
-            //{
-            //    displayMessage(message);
-            //    txtMessageText.Text = "";
-            //}
-
+            // Send message to server
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            try
+            {
+                response = await client.GetAsync("/api/content/sendMessage?token=" + tokens[activeToken][1] + "&channelID=" + message.ChannelID + "&messageText=" + message.Text);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if (response.IsSuccessStatusCode)
+                {
+                    message.ID = jsonResponseObject.MessageID;
+                    message.UserID = jsonResponseObject.UserID;
+                    message.UserName = jsonResponseObject.UserName;
+                    checkNewMessages();
+                    messages.Add(message);
+                    displayMessage(message);
+                    txtMessageText.Text = "";
+                }
+                else
+                {
+                    MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+            }
         }
-        private void displayChannel(string channelID)
+        private async Task displayChannel(string channelID)
         {
-
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            UseWaitCursor = true;
+            try
+            {
+                response = await client.GetAsync("/api/content/getMessages?token=" + tokens[activeToken][1] + "&channelID=" + channelID);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            List<dynamic> jsonResponseObject;
+            try // If there is an errorcode returned from the server, it won't be in the format of a list so will cause an exeption that needs to be caught.
+            {
+                jsonResponseObject = JsonConvert.DeserializeObject<List<dynamic>>(jsonResponse);
+            }
+            catch (JsonSerializationException ex)
+            {
+                dynamic jsonResponseError = JsonConvert.DeserializeObject<dynamic> (jsonResponse);
+                MessageBox.Show(jsonResponseError.error.ToString(), "Error: " + jsonResponseError.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                UseWaitCursor = false;
+                return;
+            }
+            messages = new List<Message>();
+            if (successfullConnection)
+            {
+                tblMessages.Controls.Clear();
+                tblMessages.SuspendLayout();
+                for (int i = 0; i < jsonResponseObject.Count; i++)
+                {
+                    Message message = new Message
+                    {
+                        ID = jsonResponseObject[i].ID,
+                        UserName = jsonResponseObject[i].UserName,
+                        ChannelID = jsonResponseObject[i].ChannelID,
+                        UserID = jsonResponseObject[i].UserID,
+                        Text = jsonResponseObject[i].Text,
+                        Time = jsonResponseObject[i].Time
+                    };
+                    messages.Add(message);
+                    displayMessage(message);
+                }
+                tblMessages.ResumeLayout();
+                activeChannelID = channelID;
+                UseWaitCursor = false;
+            }
+            else
+            {
+                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+            }
         }
         private void displayMessage(Message message)
         {
-            messages.Add(message);
             RichTextBox rtbMessageText = new RichTextBox();
-            rtbMessageText.Text = messages[messages.Count - 1].ComposeString();
+            rtbMessageText.Text = message.ComposeString();
             rtbMessageText.ReadOnly = true;
             Size size = TextRenderer.MeasureText(rtbMessageText.Text, rtbMessageText.Font);
             rtbMessageText.Height = size.Height;
@@ -215,18 +301,14 @@ namespace NeaClient
             rtbMessageText.BorderStyle = BorderStyle.None;
             rtbMessageText.BackColor = System.Drawing.Color.DarkOliveGreen;
             rtbMessageText.ForeColor = System.Drawing.Color.White;
-            bool autoScroll = true;
-            if (tblMessages.VerticalScroll.Value != tblMessages.VerticalScroll.Maximum) // If the user has scrolled up to look at a specific message, dont scroll back down to see new messages.
-            {
-                autoScroll = false;
-            }
             tblMessages.Controls.Add(rtbMessageText, 1, messages.Count);
-            if (autoScroll == true)
-            {
-                tblMessages.VerticalScroll.Value = tblMessages.VerticalScroll.Maximum;
-            }
-        }
 
+            // TODO: work out how to scroll the message into view
+        }
+        private async Task checkNewMessages()
+        {
+
+        }
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
@@ -243,7 +325,7 @@ namespace NeaClient
 
         private void addAccountToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            addLogin(false);
+            addLogin();
         }
 
         private void createGuildToolStripMenuItem_Click(object sender, EventArgs e)
@@ -255,8 +337,56 @@ namespace NeaClient
 
         private void tvGuilds_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
-            Channel channel = (Channel)e.Node.Tag;
+            Channel channel;
+            if (e.Node.Tag.GetType() != typeof(Channel)) // If the user has clicked on a guild, display the messages of the first channel in the guild.
+            {
+                if (e.Node.IsExpanded)
+                {
+                    e.Node.Collapse();
+                    return;
+                }
+                else
+                {
+                    Guild guild = (Guild)e.Node.Tag;
+                    channel = guild.Channels[0];
+                    e.Node.Expand();
+                }
+            }
+            else // If the user has clicked on a channel, display it.
+            {
+                channel = (Channel)e.Node.Tag;
+                string channelID = channel.ID;
+            }
             displayChannel(channel.ID);
+        }
+
+        private void toolStripTextBox1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                e.SuppressKeyPress = true;
+                joinGuild(toolStripTextBox1.Text);
+            }
+        }
+        private async Task joinGuild(string inviteCode)
+        {
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            try
+            {
+                response = await client.GetAsync("/api/content/sendMessage?token=" + tokens[activeToken][1] + "&code=" + inviteCode);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                // Do stuff
+            }
         }
     }
 }

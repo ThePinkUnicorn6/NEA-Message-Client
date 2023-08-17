@@ -58,7 +58,7 @@
             this.pnlGuilds.Controls.Add(this.txtSearch);
             this.pnlGuilds.Location = new System.Drawing.Point(12, 27);
             this.pnlGuilds.Name = "pnlGuilds";
-            this.pnlGuilds.Size = new System.Drawing.Size(253, 626);
+            this.pnlGuilds.Size = new System.Drawing.Size(253, 642);
             this.pnlGuilds.TabIndex = 0;
             // 
             // tvGuilds
@@ -68,7 +68,8 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tvGuilds.Location = new System.Drawing.Point(3, 32);
             this.tvGuilds.Name = "tvGuilds";
-            this.tvGuilds.Size = new System.Drawing.Size(247, 594);
+            this.tvGuilds.ShowPlusMinus = false;
+            this.tvGuilds.Size = new System.Drawing.Size(247, 514);
             this.tvGuilds.TabIndex = 1;
             this.tvGuilds.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvGuilds_NodeMouseClick);
             // 
@@ -87,10 +88,10 @@
             // 
             this.txtMessageText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtMessageText.Location = new System.Drawing.Point(301, 630);
+            this.txtMessageText.Location = new System.Drawing.Point(304, 551);
             this.txtMessageText.Multiline = true;
             this.txtMessageText.Name = "txtMessageText";
-            this.txtMessageText.Size = new System.Drawing.Size(911, 23);
+            this.txtMessageText.Size = new System.Drawing.Size(677, 23);
             this.txtMessageText.TabIndex = 1;
             this.txtMessageText.KeyDown += new System.Windows.Forms.KeyEventHandler(this.txtMessageText_KeyDown);
             // 
@@ -106,23 +107,24 @@
             this.tblMessages.Name = "tblMessages";
             this.tblMessages.RowCount = 1;
             this.tblMessages.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
-            this.tblMessages.Size = new System.Drawing.Size(1025, 0);
+            this.tblMessages.Size = new System.Drawing.Size(793, 0);
             this.tblMessages.TabIndex = 2;
             // 
             // btnSend
             // 
             this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSend.Location = new System.Drawing.Point(1218, 630);
+            this.btnSend.Location = new System.Drawing.Point(987, 550);
             this.btnSend.Name = "btnSend";
             this.btnSend.Size = new System.Drawing.Size(75, 23);
             this.btnSend.TabIndex = 3;
             this.btnSend.Text = "Send";
             this.btnSend.UseVisualStyleBackColor = true;
+            this.btnSend.Click += new System.EventHandler(this.btnSend_Click);
             // 
             // btnEditor
             // 
             this.btnEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnEditor.Location = new System.Drawing.Point(268, 630);
+            this.btnEditor.Location = new System.Drawing.Point(271, 551);
             this.btnEditor.Name = "btnEditor";
             this.btnEditor.Size = new System.Drawing.Size(27, 23);
             this.btnEditor.TabIndex = 5;
@@ -138,7 +140,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStrip1.Size = new System.Drawing.Size(1305, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1074, 24);
             this.menuStrip1.TabIndex = 6;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -178,7 +180,7 @@
             // createGuildToolStripMenuItem
             // 
             this.createGuildToolStripMenuItem.Name = "createGuildToolStripMenuItem";
-            this.createGuildToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.createGuildToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.createGuildToolStripMenuItem.Text = "Create Guild";
             this.createGuildToolStripMenuItem.Click += new System.EventHandler(this.createGuildToolStripMenuItem_Click);
             // 
@@ -187,7 +189,7 @@
             this.joinGuildFromCodeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.toolStripTextBox1});
             this.joinGuildFromCodeToolStripMenuItem.Name = "joinGuildFromCodeToolStripMenuItem";
-            this.joinGuildFromCodeToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.joinGuildFromCodeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.joinGuildFromCodeToolStripMenuItem.Text = "Join Guild";
             // 
             // toolStripTextBox1
@@ -195,6 +197,7 @@
             this.toolStripTextBox1.Name = "toolStripTextBox1";
             this.toolStripTextBox1.Size = new System.Drawing.Size(100, 23);
             this.toolStripTextBox1.ToolTipText = "Enter Invite Code";
+            this.toolStripTextBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.toolStripTextBox1_KeyDown);
             // 
             // privateChatsToolStripMenuItem
             // 
@@ -210,16 +213,16 @@
             this.pnlMessages.AutoScroll = true;
             this.pnlMessages.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.pnlMessages.Controls.Add(this.tblMessages);
-            this.pnlMessages.Location = new System.Drawing.Point(268, 27);
+            this.pnlMessages.Location = new System.Drawing.Point(269, 27);
             this.pnlMessages.Name = "pnlMessages";
-            this.pnlMessages.Size = new System.Drawing.Size(1025, 597);
+            this.pnlMessages.Size = new System.Drawing.Size(793, 518);
             this.pnlMessages.TabIndex = 7;
             // 
             // frmChat
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1305, 665);
+            this.ClientSize = new System.Drawing.Size(1074, 577);
             this.Controls.Add(this.pnlMessages);
             this.Controls.Add(this.btnEditor);
             this.Controls.Add(this.btnSend);
@@ -227,6 +230,7 @@
             this.Controls.Add(this.pnlGuilds);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
+            this.MinimumSize = new System.Drawing.Size(900, 500);
             this.Name = "frmChat";
             this.Text = "Home";
             this.Load += new System.EventHandler(this.frmChat_Load);

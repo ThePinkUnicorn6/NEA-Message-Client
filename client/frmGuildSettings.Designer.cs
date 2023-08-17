@@ -90,6 +90,7 @@
             this.Controls.Add(this.lblGuildName);
             this.Name = "frmGuildSettings";
             this.Text = "Guild Settings";
+            this.Load += new System.EventHandler(this.frmGuildSettings_Load);
             this.ResumeLayout(false);
             this.PerformLayout();
 
