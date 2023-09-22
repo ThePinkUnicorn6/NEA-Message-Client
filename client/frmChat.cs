@@ -91,10 +91,10 @@ namespace NeaClient
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
-                    try
+                    guilds = new List<Guild>();
+                    foreach (dynamic item in jsonResponseObject)
                     {
-                        guilds = new List<Guild>();
-                        foreach (dynamic item in jsonResponseObject)
+                        if (item.ContainsKey("channels"))
                         {
                             List<Channel> channels = new List<Channel>();
                             foreach (dynamic channel in item.channels)
@@ -118,7 +118,6 @@ namespace NeaClient
                             });
                         }
                     }
-                    catch { } // Only used if when the user is in no guilds and nothing needs to happen.
                     
                     tvGuilds.BeginUpdate();
                     tvGuilds.Nodes.Clear();
