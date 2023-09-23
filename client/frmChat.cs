@@ -70,7 +70,10 @@ namespace NeaClient
                     }
                 }
             } while (fillGuildSidebarSuccess == false && count <= 5);
-
+        }
+        private static void showError(dynamic jsonResponse)
+        {
+            MessageBox.Show(jsonResponse.error.ToString(), "Error: " + jsonResponse.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
         public async Task<bool> fillGuildSidebar()
         {
@@ -142,7 +145,7 @@ namespace NeaClient
                 }
                 else
                 {
-                    MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    showError(jsonResponseObject);
                     successfullConnection = false;
                 }
             }
@@ -226,7 +229,7 @@ namespace NeaClient
                 }
                 else
                 {
-                    MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    showError(jsonResponseObject);
                 }
             }
             else
@@ -257,7 +260,7 @@ namespace NeaClient
             catch (JsonSerializationException ex)
             {
                 dynamic jsonResponseError = JsonConvert.DeserializeObject<dynamic> (jsonResponse);
-                MessageBox.Show(jsonResponseError.error.ToString(), "Error: " + jsonResponseError.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                showError(jsonResponseError);
                 UseWaitCursor = false;
                 return;
             }
@@ -358,22 +361,13 @@ namespace NeaClient
             }
             displayChannel(channel.ID);
         }
-
-        private void toolStripTextBox1_KeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Enter)
-            {
-                e.SuppressKeyPress = true;
-                joinGuild(toolStripTextBox1.Text);
-            }
-        }
         private async Task joinGuild(string inviteCode)
         {
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/content/sendMessage?token=" + tokens[activeToken][1] + "&code=" + inviteCode);
+                response = await client.GetAsync("/api/guild/join?token=" + tokens[activeToken][1] + "&code=" + inviteCode);
                 successfullConnection = true;
             }
             catch
@@ -384,8 +378,28 @@ namespace NeaClient
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                // Do stuff
+                if (jsonResponseObject.ContainsKey("errcode"))
+                {
+                    if (jsonResponseObject.errcode == "INVALID_INVITE")
+                    {
+                        MessageBox.Show("Invalid code: " + inviteCode + ", please try again.");
+                    }
+                    else
+                    {
+                        showError(jsonResponseObject);
+                    }
+                }
+                else
+                {
+                    fillGuildSidebar();
+                }
             }
+        }
+
+        private void joinGuildFromCodeToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string inviteCode = Microsoft.VisualBasic.Interaction.InputBox("Join Guild", "Enter the invite code:");
+            joinGuild(inviteCode);
         }
     }
 }

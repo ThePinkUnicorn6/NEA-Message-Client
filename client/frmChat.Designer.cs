@@ -42,8 +42,13 @@
             this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createGuildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.joinGuildFromCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripTextBox1 = new System.Windows.Forms.ToolStripTextBox();
             this.privateChatsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.createDMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.guildSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.listUsersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.invitesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.createInviteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.viewInviteCodesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlMessages = new System.Windows.Forms.Panel();
             this.pnlGuilds.SuspendLayout();
             this.menuStrip1.SuspendLayout();
@@ -136,7 +141,8 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.testToolStripMenuItem,
-            this.privateChatsToolStripMenuItem});
+            this.privateChatsToolStripMenuItem,
+            this.guildSettingsToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
@@ -158,8 +164,8 @@
             this.accountOptionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.addAccountToolStripMenuItem});
             this.accountOptionsToolStripMenuItem.Name = "accountOptionsToolStripMenuItem";
-            this.accountOptionsToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
-            this.accountOptionsToolStripMenuItem.Text = "Account options";
+            this.accountOptionsToolStripMenuItem.Size = new System.Drawing.Size(164, 22);
+            this.accountOptionsToolStripMenuItem.Text = "Account Options";
             // 
             // addAccountToolStripMenuItem
             // 
@@ -186,24 +192,60 @@
             // 
             // joinGuildFromCodeToolStripMenuItem
             // 
-            this.joinGuildFromCodeToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.toolStripTextBox1});
             this.joinGuildFromCodeToolStripMenuItem.Name = "joinGuildFromCodeToolStripMenuItem";
             this.joinGuildFromCodeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.joinGuildFromCodeToolStripMenuItem.Text = "Join Guild";
-            // 
-            // toolStripTextBox1
-            // 
-            this.toolStripTextBox1.Name = "toolStripTextBox1";
-            this.toolStripTextBox1.Size = new System.Drawing.Size(100, 23);
-            this.toolStripTextBox1.ToolTipText = "Enter Invite Code";
-            this.toolStripTextBox1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.toolStripTextBox1_KeyDown);
+            this.joinGuildFromCodeToolStripMenuItem.Click += new System.EventHandler(this.joinGuildFromCodeToolStripMenuItem_Click);
             // 
             // privateChatsToolStripMenuItem
             // 
+            this.privateChatsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.createDMToolStripMenuItem});
             this.privateChatsToolStripMenuItem.Name = "privateChatsToolStripMenuItem";
             this.privateChatsToolStripMenuItem.Size = new System.Drawing.Size(88, 20);
             this.privateChatsToolStripMenuItem.Text = "Private Chats";
+            // 
+            // createDMToolStripMenuItem
+            // 
+            this.createDMToolStripMenuItem.Name = "createDMToolStripMenuItem";
+            this.createDMToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.createDMToolStripMenuItem.Text = "Create DM";
+            // 
+            // guildSettingsToolStripMenuItem
+            // 
+            this.guildSettingsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.listUsersToolStripMenuItem,
+            this.invitesToolStripMenuItem});
+            this.guildSettingsToolStripMenuItem.Name = "guildSettingsToolStripMenuItem";
+            this.guildSettingsToolStripMenuItem.Size = new System.Drawing.Size(92, 20);
+            this.guildSettingsToolStripMenuItem.Text = "Guild Settings";
+            // 
+            // listUsersToolStripMenuItem
+            // 
+            this.listUsersToolStripMenuItem.Name = "listUsersToolStripMenuItem";
+            this.listUsersToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.listUsersToolStripMenuItem.Text = "List Users";
+            // 
+            // invitesToolStripMenuItem
+            // 
+            this.invitesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.createInviteToolStripMenuItem,
+            this.viewInviteCodesToolStripMenuItem});
+            this.invitesToolStripMenuItem.Name = "invitesToolStripMenuItem";
+            this.invitesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.invitesToolStripMenuItem.Text = "Invites";
+            // 
+            // createInviteToolStripMenuItem
+            // 
+            this.createInviteToolStripMenuItem.Name = "createInviteToolStripMenuItem";
+            this.createInviteToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.createInviteToolStripMenuItem.Text = "Create Invite Code";
+            // 
+            // viewInviteCodesToolStripMenuItem
+            // 
+            this.viewInviteCodesToolStripMenuItem.Name = "viewInviteCodesToolStripMenuItem";
+            this.viewInviteCodesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.viewInviteCodesToolStripMenuItem.Text = "View Invite Codes";
             // 
             // pnlMessages
             // 
@@ -261,8 +303,13 @@
         private ToolStripMenuItem createGuildToolStripMenuItem;
         private ToolStripMenuItem joinGuildFromCodeToolStripMenuItem;
         private ToolStripMenuItem addAccountToolStripMenuItem;
-        private ToolStripTextBox toolStripTextBox1;
         private ToolStripMenuItem privateChatsToolStripMenuItem;
         private Panel pnlMessages;
+        private ToolStripMenuItem guildSettingsToolStripMenuItem;
+        private ToolStripMenuItem createDMToolStripMenuItem;
+        private ToolStripMenuItem listUsersToolStripMenuItem;
+        private ToolStripMenuItem invitesToolStripMenuItem;
+        private ToolStripMenuItem createInviteToolStripMenuItem;
+        private ToolStripMenuItem viewInviteCodesToolStripMenuItem;
     }
 }
