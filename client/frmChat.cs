@@ -17,7 +17,6 @@ namespace NeaClient
         List<Message> messages = new List<Message>(); // Used to store all the loaded messages of the currently active channel.
         List<Guild> guilds = new List<Guild>();
         string activeChannelID;
-        string activeGuildID;
         List<string[]> tokens;
         int activeToken = 0; // Used to store the index of the token currently in use in the list tokens.
         User activeUser = new User(); // Used to store the information of the logged in user.
@@ -269,6 +268,9 @@ namespace NeaClient
             messages = new List<Message>();
             if (successfullConnection)
             {
+                // This line fetches the guild id from the tags of the currently selected node. If a channel is selected, it has to get the value of the parent node.
+                
+
                 tblMessages.Controls.Clear();
                 tblMessages.SuspendLayout();
                 for (int i = 0; i < jsonResponseObject.Count; i++)
@@ -404,9 +406,10 @@ namespace NeaClient
             joinGuild(inviteCode);
         }
 
-        private async void createInviteToolStripMenuItem_Click(object sender, EventArgs e)
+        private async Task createInvite(object sender, EventArgs e)
         {
-            string guildID = ((Guild)tvGuilds.SelectedNode.Tag).ID.ToString(); 
+            // This line fetches the guild id from the tags of the currently selected node. If a channel is selected, it has to get the value of the parent node.
+            string guildID = (Guild)tvGuilds.SelectedNode.Tag != null ? ((Guild)tvGuilds.SelectedNode.Tag).ID.ToString() : ((Guild)tvGuilds.SelectedNode.Parent.Tag).ID.ToString(); 
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             try
@@ -427,6 +430,19 @@ namespace NeaClient
                     showError(jsonResponseObject);
                 }
             }
+        }
+
+        private void invitesToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // This line fetches the guild id from the tags of the currently selected node. If a channel is selected, it has to get the value of the parent node.
+            Guild activeGuild = (Guild)tvGuilds.SelectedNode.Tag != null ? (Guild)tvGuilds.SelectedNode.Tag : (Guild)tvGuilds.SelectedNode.Parent.Tag;
+
+            if (activeGuild != null)
+            {
+                Form invites = new frmInvites(activeGuild, tokens[activeToken][1]);
+                invites.Show();
+            }
+
         }
     }
 }
