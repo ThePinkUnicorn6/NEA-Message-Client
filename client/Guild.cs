@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NeaClient
 {
-    class Guild
+    public class Guild
     {
         public string Name;
         public string ID;

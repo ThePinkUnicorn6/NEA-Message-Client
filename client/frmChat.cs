@@ -439,7 +439,7 @@ namespace NeaClient
 
             if (activeGuild != null)
             {
-                Form invites = new frmInvites(activeGuild, tokens[activeToken][1]);
+                Form invites = new frmInvites(activeGuild, tokens, activeToken);
                 invites.Show();
             }
 
