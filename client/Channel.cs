@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace NeaClient
 {
-    class Channel
+    public class Channel
     {
         public string Name;
         public string ID;

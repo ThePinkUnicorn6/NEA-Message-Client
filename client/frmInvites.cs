@@ -13,13 +13,18 @@ namespace NeaClient
 {
     public partial class frmInvites : Form
     {
-        string token;
-        public Guild guild;
-        public frmInvites(Guild guild, string token)
+        List<string[]> tokens;
+        List<string> invites;
+        int activeToken;
+        Guild guild;
+        HttpClient client;
+        public frmInvites(Guild guild, List<string[]> tokens, int activeToken)
         {
             InitializeComponent();
-            this.token = token;
+            this.tokens = tokens;
+            this.activeToken = activeToken;
             this.guild = guild;
+            client = new() { BaseAddress = new Uri("http://" + tokens[activeToken][0]) };
         }
         private static void showError(dynamic jsonResponse)
         {
@@ -31,7 +36,7 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/createInvite?token=" + token + "&guildID=" + guildID);
+                response = await client.GetAsync("/api/guild/createInvite?token=" + tokens[activeToken][1] + "&guildID=" + guild.ID);
                 successfullConnection = true;
             }
             catch
@@ -46,7 +51,20 @@ namespace NeaClient
                 {
                     showError(jsonResponseObject);
                 }
+                else
+                {
+                    invites.Add(jsonResponseObject.code);
+                    cbInvites.Items.Add(jsonResponseObject.code);
+                }
             }
+        }
+        private async void fetchInvites()
+        {
+
+        }
+        private void displayInvies()
+        {
+
         }
     }
 }
