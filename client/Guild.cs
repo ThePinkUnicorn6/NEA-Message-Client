@@ -12,6 +12,7 @@ namespace NeaClient
         public string ID;
         public string OwnerID;
         public string Description;
+        public string guildKey;
         public List<Channel> Channels;
     }
 }
