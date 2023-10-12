@@ -16,6 +16,7 @@ namespace NeaClient
     {
         List<Message> messages = new List<Message>(); // Used to store all the loaded messages of the currently active channel.
         List<Guild> guilds = new List<Guild>();
+        Guild activeGuild;
         string activeChannelID;
         List<string[]> tokens;
         int activeToken = 0; // Used to store the index of the token currently in use in the list tokens.
@@ -354,6 +355,7 @@ namespace NeaClient
                 else
                 {
                     Guild guild = (Guild)e.Node.Tag;
+                    activeGuild = guild;
                     channel = guild.Channels[0];
                     e.Node.Expand();
                 }
@@ -435,8 +437,6 @@ namespace NeaClient
         private void invitesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // This line fetches the guild id from the tags of the currently selected node. If a channel is selected, it has to get the value of the parent node.
-            Guild activeGuild = (Guild)tvGuilds.SelectedNode.Tag != null ? (Guild)tvGuilds.SelectedNode.Tag : (Guild)tvGuilds.SelectedNode.Parent.Tag;
-
             if (activeGuild != null)
             {
                 Form invites = new frmInvites(activeGuild, tokens, activeToken);
