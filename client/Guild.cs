@@ -14,5 +14,6 @@ namespace NeaClient
         public string Description;
         public string guildKey;
         public List<Channel> Channels;
+        public byte[] Key;
     }
 }

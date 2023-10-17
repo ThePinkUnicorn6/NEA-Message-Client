@@ -23,6 +23,13 @@ namespace NeaClient
         }
         private void frmGuildSettings_Load(object sender, EventArgs e)
         {
+            if (guildID != null)
+            {
+                fetchGuildDetails();
+            }
+        }
+        private async void fetchGuildDetails()
+        {
 
         }
         private async void newGuild()
@@ -50,7 +57,6 @@ namespace NeaClient
             }
             catch
             {
-                response = new HttpResponseMessage();
                 MessageBox.Show("Could not connect to " + serverDetails[0], "Connection Error.");
             }
         }
@@ -60,11 +66,10 @@ namespace NeaClient
             try
             {
                 HttpClient request = new() { BaseAddress = new Uri("http://" + serverDetails[0]) };
-                response = await request.GetAsync("/api/guild/setDetails?token=" + serverDetails[1] + "&");
+                response = await request.GetAsync("/api/guild/setDetails?token=" + serverDetails[1] + "&"); // TODO: finish
             }
             catch
             {
-                response = new HttpResponseMessage();
                 MessageBox.Show("Could not connect to " + serverDetails[0], "Connection Error.");
                 return;
             }

@@ -118,6 +118,7 @@ namespace NeaClient
                                 ID = item["guildID"],
                                 OwnerID = item["ownerID"],
                                 Description = item["guildDesc"],
+                                Key = Convert.FromBase64String("guildKey"),
                                 Channels = channels
                             });
                         }
@@ -398,6 +399,10 @@ namespace NeaClient
                     fillGuildSidebar();
                 }
             }
+            else
+            {
+                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+            }
         }
 
         private void joinGuildFromCodeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -429,6 +434,10 @@ namespace NeaClient
                 {
                     showError(jsonResponseObject);
                 }
+            }
+            else
+            {
+                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
             }
         }
 
