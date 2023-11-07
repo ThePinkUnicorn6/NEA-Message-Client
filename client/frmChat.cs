@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 
+using System.Security.Cryptography;
 namespace NeaClient
 {
     public partial class frmChat : Form
@@ -202,7 +203,18 @@ namespace NeaClient
                 ChannelID = activeChannelID,
             };
             if (string.IsNullOrWhiteSpace(message.Text)) { return; } // Do nothing if text box is empty.
-
+            byte[] key =             {
+                0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16
+            };
+            try
+            {
+                message.Encrypt(key);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
             // Send message to server
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
@@ -285,6 +297,18 @@ namespace NeaClient
                         Text = jsonResponseObject[i].Text,
                         Time = jsonResponseObject[i].Time
                     };
+                    byte[] key = {
+                        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
+                        0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16
+                    };
+                    try
+                    {
+                        message.Decrypt(key);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.ToString());
+                    }
                     messages.Add(message);
                     displayMessage(message);
                 }
@@ -300,7 +324,7 @@ namespace NeaClient
         private void displayMessage(Message message)
         {
             RichTextBox rtbMessageText = new RichTextBox();
-            rtbMessageText.Text = message.ComposeString();
+            rtbMessageText.Text = message.ToString();
             rtbMessageText.ReadOnly = true;
             Size size = TextRenderer.MeasureText(rtbMessageText.Text, rtbMessageText.Font);
             rtbMessageText.Height = size.Height;
@@ -321,7 +345,7 @@ namespace NeaClient
 
         }
 
-        private void txtMessageText_KeyDown(object sender, KeyEventArgs e)
+        private async void txtMessageText_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == Keys.Enter && Control.ModifierKeys != Keys.Shift)
             {

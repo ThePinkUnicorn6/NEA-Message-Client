@@ -16,38 +16,43 @@ namespace NeaClient
         public string UserName { get; set; }
         public string Text { get; set; }
         public string Time { get; set; }
+        public byte[] IV { get; set; }
 
-        public string ComposeString()
-        {
-            string messageString = UserName + "\r\n" + Text;
-            return messageString;
-        }
+        public override string ToString() => UserName + "\r\n" + Text;
+
         public void Encrypt(byte[] key)
         {
             using (Aes aes = Aes.Create())
             {
                 aes.Key = key;
-
-                byte[] iv = aes.IV;
-                byte[] messageByteArray = Encoding.UTF8.GetBytes(Text);
-                MemoryStream stream = new MemoryStream(messageByteArray);
-                stream.Write(iv, 0, iv.Length);
-
-                using (CryptoStream cryptoStream = new(
-                    stream,
-                    aes.CreateEncryptor(),
-                    CryptoStreamMode.Write))
+                IV = aes.IV;
+                byte[] messageByteArray = Encoding.UTF8.GetBytes(Text); // Convert the message to a byte array
+                MemoryStream stream = new MemoryStream();
                 {
-                    using (StreamWriter encryptWriter = new(cryptoStream, Encoding.Unicode))
+                    using (CryptoStream cryptoStream = new(stream, aes.CreateEncryptor(key, IV), CryptoStreamMode.Write)) // Start a crypto stream to encrypt the message
                     {
-                        encryptWriter.WriteLine(Text);
+                        cryptoStream.Write(messageByteArray, 0, messageByteArray.Length); // Write the message to the crypto stream to encrypt it
                     }
+                    Text = Convert.ToBase64String(stream.ToArray()); // Replace Text with its encrypted version
                 }
             }
         }
-        public void Decrypt(string guildKey)
-        {
 
+        public async void Decrypt(byte[] key)
+        {
+            if (IV == null) { throw new Exception("IV not set"); }
+            byte[] messageByteArray = Convert.FromBase64String(Text);
+            MemoryStream stream = new MemoryStream(messageByteArray);
+            using (Aes aes = Aes.Create())
+            {
+                using CryptoStream cryptoStream = new(stream, aes.CreateDecryptor(key, IV), CryptoStreamMode.Read);
+                {
+                    using(StreamReader decryptor = new StreamReader(cryptoStream))
+                    {
+                        Text = await decryptor.ReadToEndAsync();
+                    }
+                }
+            }
         }
     }
 }
