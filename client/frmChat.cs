@@ -119,7 +119,6 @@ namespace NeaClient
                                 ID = item["guildID"],
                                 OwnerID = item["ownerID"],
                                 Description = item["guildDesc"],
-                                Key = Convert.FromBase64String("guildKey"),
                                 Channels = channels
                             });
                         }
@@ -207,6 +206,7 @@ namespace NeaClient
                 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16
             };
+            Message plaintextMessage = message;
             try
             {
                 message.Encrypt(key);
@@ -220,7 +220,7 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/content/sendMessage?token=" + tokens[activeToken][1] + "&channelID=" + message.ChannelID + "&messageText=" + message.Text);
+                response = await client.GetAsync("/api/content/sendMessage?token=" + tokens[activeToken][1] + "&channelID=" + message.ChannelID + "&messageText=" + message.Text + "&messageIV=" + Convert.ToBase64String(message.IV));
                 successfullConnection = true;
             }
             catch
@@ -237,8 +237,8 @@ namespace NeaClient
                     message.UserID = jsonResponseObject.UserID;
                     message.UserName = jsonResponseObject.UserName;
                     checkNewMessages();
-                    messages.Add(message);
-                    displayMessage(message);
+                    messages.Add(plaintextMessage);
+                    displayMessage(plaintextMessage);
                     txtMessageText.Text = "";
                 }
                 else
@@ -295,20 +295,16 @@ namespace NeaClient
                         ChannelID = jsonResponseObject[i].ChannelID,
                         UserID = jsonResponseObject[i].UserID,
                         Text = jsonResponseObject[i].Text,
-                        Time = jsonResponseObject[i].Time
+                        Time = jsonResponseObject[i].Time,
+                        IV = jsonResponseObject[i].IV
                     };
                     byte[] key = {
                         0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
                         0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16
                     };
-                    try
-                    {
-                        message.Decrypt(key);
-                    }
-                    catch (Exception ex)
-                    {
-                        Console.WriteLine(ex.ToString());
-                    }
+
+                    message.Decrypt(key);
+
                     messages.Add(message);
                     displayMessage(message);
                 }

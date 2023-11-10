@@ -37,7 +37,6 @@ namespace NeaClient
                 }
             }
         }
-
         public async void Decrypt(byte[] key)
         {
             if (IV == null) { throw new Exception("IV not set"); }
