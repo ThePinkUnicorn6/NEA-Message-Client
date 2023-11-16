@@ -17,12 +17,16 @@ namespace NeaClient
     {
         List<Message> messages = new List<Message>(); // Used to store all the loaded messages of the currently active channel.
         List<Guild> guilds = new List<Guild>();
+        Guild activeGuild;
         string activeChannelID;
         List<string[]> tokens;
         int activeToken = 0; // Used to store the index of the token currently in use in the list tokens.
         User activeUser = new User(); // Used to store the information of the logged in user.
         HttpClient client;
+        Utility utility = new Utility();
         int lastMessageTime;
+        const string tokenFile = "tokens.csv";
+        const string keyFile = "guildKeys.csv";
         public frmChat()
         {
             InitializeComponent();
@@ -31,11 +35,11 @@ namespace NeaClient
         {
             try
             {
-                if (File.ReadAllText("tokens.csv") == "") // If the tokens file has no tokens open the login page.
+                if (File.ReadAllText(tokenFile) == "") // If the tokens file has no tokens open the login page.
                 {
                     addLogin();
                 }
-                tokens = File.ReadLines("tokens.csv").Select(x => x.Split(',')).ToList();
+                tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
             }
             catch // If the tokens file does not exist, open the login page.
             {
@@ -52,26 +56,20 @@ namespace NeaClient
 
             };
             bool fillGuildSidebarSuccess;
-            int count = 0;
             do
             {
                 UseWaitCursor = true;
                 fillGuildSidebarSuccess = await fillGuildSidebar();
                 UseWaitCursor = false;
-                count++;
-                if (count == 5)
+                if (!fillGuildSidebarSuccess)
                 {
                     DialogResult retry = MessageBox.Show("Could not connect to " + tokens[activeToken][0] + ". Would you like to try again?", "Connection Error", MessageBoxButtons.YesNo);
-                    if (retry == DialogResult.Yes)
-                    {
-                        count = 0;
-                    }
-                    else
+                    if (retry != DialogResult.Yes)
                     {
                         Close();
                     }
                 }
-            } while (fillGuildSidebarSuccess == false && count <= 5);
+            } while (fillGuildSidebarSuccess == false);
         }
         private static void showError(dynamic jsonResponse)
         {
@@ -142,8 +140,8 @@ namespace NeaClient
                 }
                 else if (jsonResponseObject.errcode.ToString() == "INVALID_TOKEN")
                 {
-                    successfullConnection = false;
                     addLogin(true);
+                    successfullConnection = await fillGuildSidebar();
                 }
                 else
                 {
@@ -164,9 +162,9 @@ namespace NeaClient
                 server = frmLogin.server;
                 this.client = frmLogin.client;
             }
-            if (File.Exists("tokens.csv")) // Checks if a token file has been created, and readse its contents if it has.
+            if (File.Exists(tokenFile)) // Checks if a token file has been created, and readse its contents if it has.
             {
-                tokens = File.ReadLines("tokens.csv").Select(x => x.Split(',')).ToList();
+                tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
             }
             else
             {
@@ -175,8 +173,12 @@ namespace NeaClient
             if (!string.IsNullOrEmpty(token)) // If the login form has responded with info, write it to the file.
             {
                 tokens.Add(new string[] { server, token });
-                File.AppendAllText("tokens.csv", tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] + "\r\n");
-                if (removeInvalid == true) removeToken(activeToken);
+                File.AppendAllText(tokenFile, tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] + "\r\n");
+                if (removeInvalid == true)
+                {
+                    removeToken(activeToken);
+                    client = new() { BaseAddress = new Uri("http://" + tokens[activeToken][0]) }; // If the token was previously incorrect, the client needs to be set 
+                }
                 activeToken = tokens.Count - 1;
             }
             tvGuilds.Nodes.Clear();
@@ -184,10 +186,10 @@ namespace NeaClient
         public void removeToken(int tokenIndex)
         {
             tokens.RemoveAt(tokenIndex); // Remove the token from the list.
-            File.WriteAllText("tokens.csv", ""); // Clear the file.
+            File.WriteAllText(tokenFile, ""); // Clear the file.
             for (int i = 0; i < tokens.Count; i++) // Re-write the token list to the file.
             {
-                File.AppendAllText("tokens.csv", tokens[i][0] + "," + tokens[i][1] + "\r\n");
+                File.AppendAllText(tokenFile, tokens[i][0] + "," + tokens[i][1] + "\r\n");
             }
         }
         private void btnSend_Click(object sender, EventArgs e)
@@ -198,18 +200,27 @@ namespace NeaClient
         {
             Message message = new Message
             {
-                Text = txtMessageText.Text,
+                PlainText = txtMessageText.Text,
                 ChannelID = activeChannelID,
             };
-            if (string.IsNullOrWhiteSpace(message.Text)) { return; } // Do nothing if text box is empty.
-            byte[] key =             {
-                0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-                0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16
-            };
-            Message plaintextMessage = message;
+            if (string.IsNullOrWhiteSpace(message.PlainText)) { return; } // Do nothing if text box is empty.
+            
+            List <string[]> keys = utility.getKeys(); // Read keys from file
+            List <string> keyGuilds = new List<string> { }; 
+            for (int i = 0; i < keys.Count; i++)
+            {
+                keyGuilds.Add(keys[i][0]); // Create list of just the guilds to be used to search through
+            }
+            
+
+            utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out bool found, out int keyIndex);
+            if (!found)
+            {
+                utility.requestGuildKey(activeGuild.ID);
+            }
             try
             {
-                message.Encrypt(key);
+                message.Encrypt(Convert.FromBase64String(keys[keyIndex][1]));
             }
             catch (Exception ex)
             {
@@ -220,7 +231,7 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/content/sendMessage?token=" + tokens[activeToken][1] + "&channelID=" + message.ChannelID + "&messageText=" + message.Text + "&messageIV=" + Convert.ToBase64String(message.IV));
+                response = await client.GetAsync("/api/content/sendMessage?token=" + tokens[activeToken][1] + "&channelID=" + message.ChannelID + "&messageText=" + message.CypherText + "&IV=" + Convert.ToBase64String(message.IV));
                 successfullConnection = true;
             }
             catch
@@ -236,9 +247,9 @@ namespace NeaClient
                     message.ID = jsonResponseObject.MessageID;
                     message.UserID = jsonResponseObject.UserID;
                     message.UserName = jsonResponseObject.UserName;
-                    checkNewMessages();
-                    messages.Add(plaintextMessage);
-                    displayMessage(plaintextMessage);
+                    utility.checkNewMessages();
+                    messages.Add(message);
+                    displayMessage(message);
                     txtMessageText.Text = "";
                 }
                 else
@@ -251,8 +262,36 @@ namespace NeaClient
                 MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
             }
         }
+
         private async Task displayChannel(string channelID)
         {
+            tblMessages.Controls.Clear();
+            txtKeyWarning.Visible = false;
+            int keyIndex;
+            bool found;
+            List<string[]> keys = utility.getKeys();
+            if (keys.Count == 0)
+            {
+                txtKeyWarning.Visible = true;
+                utility.requestGuildKey(activeGuild.ID);
+                return;
+            }
+            else
+            {
+                List<string> keyGuilds = new();
+                for (int i = 0; i < keys.Count; i++)
+                {
+                    keyGuilds.Add(keys[i][0]); // Converts the keys and guilds array to an array of just guilds to search for the place to insert to.
+                }
+                Utility utility = new();
+                utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out found, out keyIndex);
+            }
+            if (!found)
+            {
+                txtKeyWarning.Visible = true;
+                utility.requestGuildKey(activeGuild.ID);
+                return;
+            }
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             UseWaitCursor = true;
@@ -281,30 +320,29 @@ namespace NeaClient
             messages = new List<Message>();
             if (successfullConnection)
             {
-                // This line fetches the guild id from the tags of the currently selected node. If a channel is selected, it has to get the value of the parent node.
                 
-
-                tblMessages.Controls.Clear();
                 tblMessages.SuspendLayout();
                 for (int i = 0; i < jsonResponseObject.Count; i++)
                 {
+                    byte[] IV;
+                    try
+                    {
+                        IV = Convert.FromBase64String(jsonResponseObject[i].IV.ToString());
+                    }
+                    catch { IV = new byte[16]; }
                     Message message = new Message
                     {
                         ID = jsonResponseObject[i].ID,
                         UserName = jsonResponseObject[i].UserName,
                         ChannelID = jsonResponseObject[i].ChannelID,
                         UserID = jsonResponseObject[i].UserID,
-                        Text = jsonResponseObject[i].Text,
+                        CypherText = jsonResponseObject[i].Text,
                         Time = jsonResponseObject[i].Time,
-                        IV = jsonResponseObject[i].IV
+                        IV = IV
                     };
-                    byte[] key = {
-                        0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
-                        0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16
-                    };
+                    byte[] key = Convert.FromBase64String(keys[keyIndex][1]);
 
                     message.Decrypt(key);
-
                     messages.Add(message);
                     displayMessage(message);
                 }
@@ -332,10 +370,7 @@ namespace NeaClient
 
             // TODO: work out how to scroll the message into view
         }
-        private async Task checkNewMessages()
-        {
 
-        }
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
@@ -346,7 +381,7 @@ namespace NeaClient
             if (e.KeyCode == Keys.Enter && Control.ModifierKeys != Keys.Shift)
             {
                 e.SuppressKeyPress = true;
-                sendMessage();
+                await sendMessage();
             }
         }
 
@@ -362,9 +397,11 @@ namespace NeaClient
             fillGuildSidebar();
         }
 
-        private void tvGuilds_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        private async void tvGuilds_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
         {
+            
             Channel channel;
+            Guild guild;
             if (e.Node.Tag.GetType() != typeof(Channel)) // If the user has clicked on a guild, display the messages of the first channel in the guild.
             {
                 if (e.Node.IsExpanded)
@@ -374,7 +411,8 @@ namespace NeaClient
                 }
                 else
                 {
-                    Guild guild = (Guild)e.Node.Tag;
+                    txtKeyWarning.Visible = false;
+                    guild = (Guild)e.Node.Tag;
                     channel = guild.Channels[0];
                     e.Node.Expand();
                 }
@@ -382,8 +420,9 @@ namespace NeaClient
             else // If the user has clicked on a channel, display it.
             {
                 channel = (Channel)e.Node.Tag;
-                string channelID = channel.ID;
+                guild = (Guild)e.Node.Parent.Tag;
             }
+            activeGuild = guild;
             displayChannel(channel.ID);
         }
         private async Task joinGuild(string inviteCode)
@@ -434,12 +473,11 @@ namespace NeaClient
         private async Task createInvite(object sender, EventArgs e)
         {
             // This line fetches the guild id from the tags of the currently selected node. If a channel is selected, it has to get the value of the parent node.
-            string guildID = (Guild)tvGuilds.SelectedNode.Tag != null ? ((Guild)tvGuilds.SelectedNode.Tag).ID.ToString() : ((Guild)tvGuilds.SelectedNode.Parent.Tag).ID.ToString(); 
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/createInvite?token=" + tokens[activeToken][1] + "&guildID=" + guildID);
+                response = await client.GetAsync("/api/guild/createInvite?token=" + tokens[activeToken][1] + "&guildID=" + activeGuild.ID);
                 successfullConnection = true;
             }
             catch
@@ -464,14 +502,13 @@ namespace NeaClient
         private void invitesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // This line fetches the guild id from the tags of the currently selected node. If a channel is selected, it has to get the value of the parent node.
-            Guild activeGuild = (Guild)tvGuilds.SelectedNode.Tag != null ? (Guild)tvGuilds.SelectedNode.Tag : (Guild)tvGuilds.SelectedNode.Parent.Tag;
+            Guild activeGuild = (Guild)tvGuilds.SelectedNode.Tag ?? (Guild)tvGuilds.SelectedNode.Parent.Tag;
 
             if (activeGuild != null)
             {
                 Form invites = new frmInvites(activeGuild, tokens, activeToken);
                 invites.Show();
             }
-
         }
     }
 }
