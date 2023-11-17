@@ -9,15 +9,44 @@ namespace NeaClient
     internal class Utility
     {
         const string keyFile = "guildKeys.csv";
-        public void binarySearch(string[] array, string item, out bool found, out int index)
+        public void binarySearch(string[] list, string item, out bool found, out int index)
         {
+            //found = false;
+            //index = list.ToList().IndexOf(item); //TODO: Add binary search, not this tempory solution
+            //if (index == -1)
+            //{
+            //    index = 0;
+            //}
+            //else found = true;
+            int lowerBound = 0;
+            int upperBound = list.Length - 1;
+            int midPoint = 0;
             found = false;
-            index = array.ToList().IndexOf(item); //TODO: Add binary search, not this tempory solution
-            if (index == -1)
+            while (found == false && upperBound != lowerBound)
             {
-                index = 0;
+                midPoint = (upperBound - lowerBound) / 2;
+                Console.WriteLine(midPoint);
+                switch (string.Compare(list[midPoint], item))
+                {
+                    case 0:
+                        found = true;
+                        break;
+                    case -1:
+                        lowerBound = midPoint + 1;
+                        break;
+                    case 1:
+                        upperBound = midPoint - 1;
+                        break;
+                }
             }
-            else found = true;
+            if (found == true)
+            {
+                index = midPoint;
+            }
+            else
+            {
+                index = -1;
+            }
         }
         public List<string[]> getKeys()
         {
