@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net.Http.Json;
 using Newtonsoft.Json;
 
 using System.Security.Cryptography;
@@ -231,7 +232,10 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/content/sendMessage?token=" + tokens[activeToken][1] + "&channelID=" + message.ChannelID + "&messageText=" + message.CypherText + "&IV=" + Convert.ToBase64String(message.IV));
+                var request = new { token = tokens[activeToken][1], channelID = message.ChannelID, messageText = message.CypherText, IV = Convert.ToBase64String(message.IV) };
+                var contentData = JsonContent.Create(request);
+                
+                response = await client.PostAsync("/api/content/sendMessage", contentData);
                 successfullConnection = true;
             }
             catch
