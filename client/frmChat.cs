@@ -486,7 +486,12 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/createInvite?token=" + tokens[activeToken][1] + "&guildID=" + activeGuild.ID);
+                var content = new
+                {
+                    token = tokens[activeToken][1],
+                    guildID = activeGuild.ID
+                };
+                response = await client.PostAsJsonAsync("/api/guild/createInvite", content);
                 successfullConnection = true;
             }
             catch
