@@ -41,7 +41,7 @@ namespace NeaClient
             byte[] key = RandomNumberGenerator.GetBytes(16);
             string keyString = Convert.ToBase64String(key);
             string keyDigest = Convert.ToBase64String(SHA256.HashData(key));
-            HttpClient request = new() { BaseAddress = new Uri("http://" + serverDetails[0]) };
+            HttpClient client = new() { BaseAddress = new Uri("http://" + serverDetails[0]) };
             try
             {
                 var content = new
@@ -50,9 +50,7 @@ namespace NeaClient
                     GuildName = txtGuildName.Text,
                     guildKeyDigest = keyDigest,
                 };
-                response = await request.PostAsJsonAsync("/api/guild/create", content);
-                // response = await request.GetAsync("/api/guild/create?token=" + serverDetails[1] + "&guildName=" + txtGuildName.Text + "&guildKeyDigest=" + keyDigest);
-            }
+                response = await client.PostAsJsonAsync("/api/guild/create", content);            }
             catch
             {
                 MessageBox.Show("Could not connect to " + serverDetails[0], "Connection Error.");
@@ -69,7 +67,13 @@ namespace NeaClient
                 {
                     try
                     {
-                        response = await request.GetAsync("/api/guild/setDetails?token=" + serverDetails[1] + "&guildID=" + guildID + "&guildDesc=" + txtGuildDescription.Text);
+                        var content = new
+                        {
+                            token = serverDetails[1],
+                            guildID = guildID,
+                            guildDesc = txtGuildDescription.Text
+                        };
+                        response = await client.PostAsJsonAsync("/api/guild/setDetails", content);
                     }
                                 
                     catch

@@ -232,10 +232,15 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                var request = new { token = tokens[activeToken][1], channelID = message.ChannelID, messageText = message.CypherText, IV = Convert.ToBase64String(message.IV) };
-                var contentData = JsonContent.Create(request);
+                var request = new 
+                { 
+                    token = tokens[activeToken][1],
+                    channelID = message.ChannelID, 
+                    messageText = message.CypherText, 
+                    IV = Convert.ToBase64String(message.IV)
+                };
                 
-                response = await client.PostAsync("/api/content/sendMessage", contentData);
+                response = await client.PostAsJsonAsync("/api/content/sendMessage", request);
                 successfullConnection = true;
             }
             catch
