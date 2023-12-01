@@ -440,7 +440,12 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/join?token=" + tokens[activeToken][1] + "&code=" + inviteCode);
+                var content = new
+                {
+                    token = tokens[activeToken][1],
+                    code =inviteCode
+                };
+                response = await client.PostAsJsonAsync("/api/guild/join", content);
                 successfullConnection = true;
             }
             catch
