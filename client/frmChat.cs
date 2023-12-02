@@ -520,9 +520,6 @@ namespace NeaClient
 
         private void invitesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            // This line fetches the guild id from the tags of the currently selected node. If a channel is selected, it has to get the value of the parent node.
-            Guild activeGuild = (Guild)tvGuilds.SelectedNode.Tag ?? (Guild)tvGuilds.SelectedNode.Parent.Tag;
-
             if (activeGuild != null)
             {
                 Form invites = new frmInvites(activeGuild, tokens, activeToken);
