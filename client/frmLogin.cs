@@ -68,7 +68,7 @@ namespace NeaClient
                 {
                     userName = txtUsername.Text,
                     passHash = passHash,
-                    pubicKey = ""
+                    publicKey = ""
                 };
                 response = await client.PostAsJsonAsync("/api/account/create", content);
             }

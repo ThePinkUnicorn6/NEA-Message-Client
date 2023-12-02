@@ -109,7 +109,6 @@ namespace NeaClient
                 }
                 Utility utility = new();
                 utility.binarySearch(keyGuilds.ToArray(), guildID, out bool found, out int index);
-                index = 0;
                 keys.Insert(index, new string[] { guildID, keyString }); // Inserts the new key and guild at the location needed
                 File.WriteAllText(keyFile, ""); // Clear file before writing all the data back to it with the new guild included
                 for (int i = 0; i < keys.Count; i++)

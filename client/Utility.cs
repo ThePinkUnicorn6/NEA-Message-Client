@@ -11,41 +11,33 @@ namespace NeaClient
         const string keyFile = "guildKeys.csv";
         public void binarySearch(string[] list, string item, out bool found, out int index)
         {
-            //found = false;
-            //index = list.ToList().IndexOf(item); //TODO: Add binary search, not this tempory solution
-            //if (index == -1)
-            //{
-            //    index = 0;
-            //}
-            //else found = true;
-            int lowerBound = 0;
-            int upperBound = list.Length - 1;
-            int midPoint = 0;
+            int lower = 0;
+            int upper = list.Length - 1;
+            int mid = 0;
             found = false;
-            while (found == false && upperBound != lowerBound)
+            while (!found && lower <= upper)
             {
-                midPoint = (upperBound - lowerBound) / 2;
-                Console.WriteLine(midPoint);
-                switch (string.Compare(list[midPoint], item))
+                mid = (upper + lower) / 2;
+                switch (string.Compare(list[mid], item))
                 {
                     case 0:
                         found = true;
                         break;
-                    case -1:
-                        lowerBound = midPoint + 1;
+                    case < 0:
+                        lower = mid + 1;
                         break;
-                    case 1:
-                        upperBound = midPoint - 1;
+                    case > 0:
+                        upper = mid - 1;
                         break;
                 }
             }
-            if (found == true)
+            if (found)
             {
-                index = midPoint;
+                index = mid;
             }
             else
             {
-                index = -1;
+                index = lower;
             }
         }
         public List<string[]> getKeys()

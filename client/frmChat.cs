@@ -295,7 +295,7 @@ namespace NeaClient
                 Utility utility = new();
                 utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out found, out keyIndex);
             }
-            if (!found)
+            if (!found )
             {
                 txtKeyWarning.Visible = true;
                 utility.requestGuildKey(activeGuild.ID);
