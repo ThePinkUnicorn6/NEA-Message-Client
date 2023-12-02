@@ -1,4 +1,5 @@
 using System.Net;
+using System.Net.Http.Json;
 using Newtonsoft.Json;
 using System.Text;
 using System.Security.Cryptography;
@@ -25,7 +26,12 @@ namespace NeaClient
             try
             {
                 client = new() { BaseAddress = new Uri("http://" + server) };
-                response = await client.GetAsync("/api/account/login?userName=" + txtUsername.Text + "&passHash=" + passHash);
+                var content = new
+                {
+                    userName = txtUsername.Text,
+                    passHash = passHash,
+                };
+                response = await client.PostAsJsonAsync("/api/account/login", content);
             }
             catch
             {
@@ -57,8 +63,14 @@ namespace NeaClient
             HttpResponseMessage response;
             try
             {
-                HttpClient request = new() { BaseAddress = new Uri("http://" + server) };
-                response = await request.GetAsync("/api/account/create?userName=" + txtUsername.Text + "&passHash=" + passHash + "&publicKey=''");
+                client = new() { BaseAddress = new Uri("http://" + server) };
+                var content = new
+                {
+                    userName = txtUsername.Text,
+                    passHash = passHash,
+                    publicKey = ""
+                };
+                response = await client.PostAsJsonAsync("/api/account/create", content);
             }
             catch
             {
