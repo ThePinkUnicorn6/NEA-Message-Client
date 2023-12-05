@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Net.Http.Json;
 
 namespace NeaClient
 {
@@ -43,7 +44,12 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/createInvite?token=" + tokens[activeToken][1] + "&guildID=" + guild.ID);
+                var content = new
+                {
+                    token = tokens[activeToken][1],
+                    guildID = guild.ID
+                };
+                response = await client.PostAsJsonAsync("/api/guild/createInvite", content);
                 successfullConnection = true;
             }
             catch

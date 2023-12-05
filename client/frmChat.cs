@@ -486,7 +486,6 @@ namespace NeaClient
 
         private async Task createInvite(object sender, EventArgs e)
         {
-            // This line fetches the guild id from the tags of the currently selected node. If a channel is selected, it has to get the value of the parent node.
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             try
