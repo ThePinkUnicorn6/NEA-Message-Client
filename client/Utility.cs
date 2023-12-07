@@ -53,13 +53,5 @@ namespace NeaClient
             }
             return keys;
         }
-        public void requestGuildKey(string guildID)
-        {
-            // TODO: make key request
-        }
-        public async Task checkNewMessages()
-        {
-
-        }
     }
 }

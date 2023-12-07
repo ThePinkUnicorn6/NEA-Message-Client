@@ -16,10 +16,27 @@ namespace NeaClient
         public string UserName { get; set; }
         public string PlainText { get; set; }
         public string CypherText { get; set; }
-        public string Time { get; set; }
+        public float Time { get; set; }
         public byte[] IV { get; set; }
 
-        public override string ToString() => UserName + "\r\n" + PlainText;
+        public override string ToString() {
+            
+            return UserName + " (" + timeString() + ")\r\n" + PlainText;
+        }
+        private string timeString()
+        {
+            DateTime dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
+            dateTime = dateTime.AddSeconds(Time);
+            if (dateTime.Date == DateTime.Now.Date)
+            {
+                return "Today at " + dateTime.ToString("HH:mm");
+            }
+            else
+            {
+                return dateTime.ToString("yyyy/MM/dd HH:mm");
+            }
+
+        }
 
         public void Encrypt(byte[] key)
         {
