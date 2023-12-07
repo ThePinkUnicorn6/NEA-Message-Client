@@ -7,7 +7,7 @@ namespace NeaClient
 {
     public partial class frmLogin : Form
     {
-        public string token;
+        public User user;
         public string server;
         public HttpClient client;
         public frmLogin()
@@ -44,7 +44,7 @@ namespace NeaClient
             
             if (jsonResponseObject.token is not null)
             {
-                token = jsonResponseObject.token.ToString();
+                user.Token = jsonResponseObject.token.ToString();
                 server = txtServerAddress.Text;
                 
                 Close();
@@ -59,16 +59,20 @@ namespace NeaClient
         {
             string passHash = hash(txtPassword.Text);
             server = txtServerAddress.Text.ToLower().Take(7).ToArray() == "http://".ToArray() ? txtServerAddress.Text.Remove(0, 7) : txtServerAddress.Text; // Remove http:// if it is in the url.
-            server = txtServerAddress.Text.ToLower().Take(7).ToArray() == "https://".ToArray() ? txtServerAddress.Text.Remove(0, 8) : txtServerAddress.Text; //Remove https:// if that is in the url.
             HttpResponseMessage response;
             try
             {
                 client = new() { BaseAddress = new Uri("http://" + server) };
+                user = new User
+                {
+                    Name = txtUsername.Text,
+                };
+                user.GenerateKeys();
                 var content = new
                 {
-                    userName = txtUsername.Text,
+                    userName = user.Name,
                     passHash = passHash,
-                    publicKey = ""
+                    publicKey = user.PublicKey
                 };
                 response = await client.PostAsJsonAsync("/api/account/create", content);
             }
@@ -82,7 +86,7 @@ namespace NeaClient
             dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
             if (jsonResponseObject.token is not null)
             {
-                token = jsonResponseObject.token.ToString();
+                user.Token = jsonResponseObject.token.ToString();
                 server = txtServerAddress.Text;
                 Close();
             }

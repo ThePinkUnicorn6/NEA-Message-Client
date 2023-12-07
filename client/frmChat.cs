@@ -154,12 +154,12 @@ namespace NeaClient
         }
         public void addLogin(bool removeInvalid = false)
         {
-            string token;
+            User user;
             string server;
             using (var frmLogin = new frmLogin()) // Opens the login form and saves its responses.
             {
                 frmLogin.ShowDialog();
-                token = frmLogin.token;
+                user = frmLogin.user;
                 server = frmLogin.server;
                 this.client = frmLogin.client;
             }
@@ -171,10 +171,10 @@ namespace NeaClient
             {
                 tokens = new List<string[]>();
             }
-            if (!string.IsNullOrEmpty(token)) // If the login form has responded with info, write it to the file.
+            if (user != null && user.Token != null) // If the login form has responded with info, write it to the file.
             {
-                tokens.Add(new string[] { server, token });
-                File.AppendAllText(tokenFile, tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] + "\r\n");
+                tokens.Add(new string[] { server, user.Token });
+                File.AppendAllText(tokenFile, tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] +  "," + Convert.ToBase64String(user.PrivateKey) + "\r\n");
                 if (removeInvalid == true)
                 {
                     removeToken(activeToken);
