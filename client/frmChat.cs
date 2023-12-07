@@ -217,7 +217,7 @@ namespace NeaClient
             utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out bool found, out int keyIndex);
             if (!found)
             {
-                utility.requestGuildKey(activeGuild.ID);
+                requestGuildKey(activeGuild.ID);
             }
             try
             {
@@ -256,7 +256,8 @@ namespace NeaClient
                     message.ID = jsonResponseObject.MessageID;
                     message.UserID = jsonResponseObject.UserID;
                     message.UserName = jsonResponseObject.UserName;
-                    utility.checkNewMessages();
+                    message.Time = jsonResponseObject.Time;
+                    checkNewMessages();
                     messages.Add(message);
                     displayMessage(message);
                     txtMessageText.Text = "";
@@ -282,7 +283,7 @@ namespace NeaClient
             if (keys.Count == 0)
             {
                 txtKeyWarning.Visible = true;
-                utility.requestGuildKey(activeGuild.ID);
+                requestGuildKey(activeGuild.ID);
                 return;
             }
             else
@@ -298,7 +299,7 @@ namespace NeaClient
             if (!found )
             {
                 txtKeyWarning.Visible = true;
-                utility.requestGuildKey(activeGuild.ID);
+                requestGuildKey(activeGuild.ID);
                 return;
             }
             HttpResponseMessage response = new HttpResponseMessage();
@@ -524,6 +525,14 @@ namespace NeaClient
                 Form invites = new frmInvites(activeGuild, tokens, activeToken);
                 invites.Show();
             }
+        }
+        public void requestGuildKey(string guildID)
+        {
+            // TODO: make key request
+        }
+        public async Task checkNewMessages()
+        {
+
         }
     }
 }

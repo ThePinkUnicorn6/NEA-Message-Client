@@ -94,7 +94,6 @@ namespace NeaClient
                 }
                 else
                 {
-                    
                     inviteCodes = new List<string>(jsonResponseObject.inviteCodes.ToObject<string[]>());
                 }
             }
