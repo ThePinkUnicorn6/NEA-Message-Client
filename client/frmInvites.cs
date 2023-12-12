@@ -108,5 +108,10 @@ namespace NeaClient
                 }
             }
         }
+
+        private void cbInvites_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            Clipboard.SetText((string)((ListBox)sender).SelectedItem);
+        }
     }
 }

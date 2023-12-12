@@ -121,8 +121,6 @@ namespace NeaClient
             {
                 MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-            
-
         }
         private async void editGuild()
         {

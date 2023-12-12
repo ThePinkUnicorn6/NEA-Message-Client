@@ -526,13 +526,42 @@ namespace NeaClient
                 invites.Show();
             }
         }
-        public void requestGuildKey(string guildID)
+        public async void requestGuildKey(string guildID)
         {
-            // TODO: make key request
+
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            try
+            {
+                var content = new
+                {
+                    token = tokens[activeToken][1],
+                    guildID = guildID
+                };
+                response = await client.PostAsJsonAsync("/api/guild/requestKey", content);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if (jsonResponseObject.ContainsKey("errcode"))
+                {
+                    showError(jsonResponseObject);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+            }
         }
         public async Task checkNewMessages()
         {
-
+            // TODO: check for new messages periodicaly
         }
     }
 }
