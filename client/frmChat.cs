@@ -12,6 +12,8 @@ using System.Net.Http.Json;
 using Newtonsoft.Json;
 
 using System.Security.Cryptography;
+using System.Net;
+
 namespace NeaClient
 {
     public partial class frmChat : Form
@@ -71,10 +73,34 @@ namespace NeaClient
                     }
                 }
             } while (fillGuildSidebarSuccess == false);
+            fulfillKeyRequests();
         }
         private static void showError(dynamic jsonResponse)
         {
             MessageBox.Show(jsonResponse.error.ToString(), "Error: " + jsonResponse.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        private async Task fulfillKeyRequests()
+        {
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            try
+            {
+                response = await client.GetAsync("/api/guild/listRequests?token=" + tokens[activeToken][1]);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+
+                }
+            }
         }
         public async Task<bool> fillGuildSidebar()
         {
@@ -217,7 +243,7 @@ namespace NeaClient
             utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out bool found, out int keyIndex);
             if (!found)
             {
-                requestGuildKey(activeGuild.ID);
+                bool returned = await requestGuildKey(activeGuild.ID);
             }
             try
             {
@@ -526,11 +552,12 @@ namespace NeaClient
                 invites.Show();
             }
         }
-        public async void requestGuildKey(string guildID)
+        public async Task<bool> requestGuildKey(string guildID)
         {
-
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
+            byte[] key;
+            string userID;
             try
             {
                 var content = new
@@ -549,7 +576,13 @@ namespace NeaClient
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                if (jsonResponseObject.ContainsKey("errcode"))
+                if ((int)response.StatusCode == 200 && jsonResponseObject.ContainsKey("key")) // If the client has requested the keys previously and another user has submitted the keys, 
+                {
+                    key = Convert.FromBase64String((string)jsonResponseObject.keys.key);
+                    userID = (string)jsonResponseObject.keys.userID;
+
+                }
+                else if (jsonResponseObject.ContainsKey("errcode"))
                 {
                     showError(jsonResponseObject);
                 }
@@ -558,6 +591,7 @@ namespace NeaClient
             {
                 MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
             }
+            return false;
         }
         public async Task checkNewMessages()
         {
