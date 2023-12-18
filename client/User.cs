@@ -23,5 +23,10 @@ namespace NeaClient
             PublicKey = rsa.ExportRSAPublicKey();
             PrivateKey = rsa.ExportRSAPrivateKey();
         }
+        public void ReadPrivateKey(string tokenFile, int activeToken)
+        {
+            var tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
+            PrivateKey = Convert.FromBase64String(tokens[activeToken][2]);
+        }
     }
 }

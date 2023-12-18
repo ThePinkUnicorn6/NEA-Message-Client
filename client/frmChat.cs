@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net.Http.Json;
 using Newtonsoft.Json;
-
 using System.Security.Cryptography;
 using System.Net;
 
@@ -85,7 +84,7 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/listRequests?token=" + tokens[activeToken][1]);
+                response = await client.GetAsync("/api/guild/key/listRequests?token=" + tokens[activeToken][1]);
                 successfullConnection = true;
             }
             catch
@@ -98,7 +97,11 @@ namespace NeaClient
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 if (response.StatusCode == System.Net.HttpStatusCode.OK)
                 {
+                    // If any requests returned and keys exist for it encrypt and send them.
+                    foreach (dynamic request in jsonResponseObject)
+                    {
 
+                    }
                 }
             }
         }
@@ -119,7 +122,7 @@ namespace NeaClient
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
                     guilds = new List<Guild>();
                     foreach (dynamic item in jsonResponseObject)
@@ -144,6 +147,7 @@ namespace NeaClient
                                 ID = item["guildID"],
                                 OwnerID = item["ownerID"],
                                 Description = item["guildDesc"],
+                                KeyDigest = item["guildKeyDigest"],
                                 Channels = channels
                             });
                         }
@@ -346,7 +350,7 @@ namespace NeaClient
             {
                 jsonResponseObject = JsonConvert.DeserializeObject<List<dynamic>>(jsonResponse);
             }
-            catch (JsonSerializationException ex)
+            catch
             {
                 dynamic jsonResponseError = JsonConvert.DeserializeObject<dynamic> (jsonResponse);
                 showError(jsonResponseError);
@@ -556,8 +560,7 @@ namespace NeaClient
         {
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
-            byte[] key;
-            string userID;
+            byte[] keyCypherText;
             try
             {
                 var content = new
@@ -565,7 +568,7 @@ namespace NeaClient
                     token = tokens[activeToken][1],
                     guildID = guildID
                 };
-                response = await client.PostAsJsonAsync("/api/guild/requestKey", content);
+                response = await client.PostAsJsonAsync("/api/guild/key/request", content);
                 successfullConnection = true;
             }
             catch
@@ -578,9 +581,22 @@ namespace NeaClient
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 if ((int)response.StatusCode == 200 && jsonResponseObject.ContainsKey("key")) // If the client has requested the keys previously and another user has submitted the keys, 
                 {
-                    key = Convert.FromBase64String((string)jsonResponseObject.keys.key);
-                    userID = (string)jsonResponseObject.keys.userID;
-
+                    byte[] guildKey;
+                    keyCypherText = Convert.FromBase64String((string)jsonResponseObject.keys.key);
+                    User user = new();
+                    user.ReadPrivateKey(tokenFile, activeToken);
+                    // Decrypt guild key
+                    using (RSA rsa = RSA.Create())
+                    {
+                        rsa.ImportRSAPrivateKey(user.PrivateKey, out _);
+                        guildKey = rsa.Decrypt(keyCypherText, RSAEncryptionPadding.OaepSHA256);
+                    }
+                    // Check if key is valid
+                    if (Convert.ToBase64String(SHA256.HashData(guildKey)) == activeGuild.KeyDigest)
+                    {
+                        // If the key that has been submited is correct, save it to file.
+                        utility.saveKey(guildID, guildKey);
+                    }
                 }
                 else if (jsonResponseObject.ContainsKey("errcode"))
                 {
