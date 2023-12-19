@@ -56,14 +56,17 @@ namespace NeaClient
         public void saveKey(string guildID, byte[] key)
         {
             List<string[]> keys = new();
-            try
+            if (File.Exists(keyFile))
             {
-                keys = File.ReadLines(keyFile).Select(x => x.Split(',')).ToList(); // Reads the key file
+                try
+                {
+                    keys = File.ReadLines(keyFile).Select(x => x.Split(',')).ToList(); // Reads the key file
+                }
+                catch { MessageBox.Show("Key file corrupt!", "Error"); } 
             }
-            catch { MessageBox.Show("Key file corrupt!", "Error"); }
             if (keys.Count == 0)
             {
-                File.WriteAllText(keyFile, guildID + "," + Convert.ToBase64String(key)); // If something has gone wrong and the file is empty, write to it.
+                File.WriteAllText(keyFile, guildID + "," + Convert.ToBase64String(key)); // If the file is empty, write to it.
             }
             else
             {
@@ -82,12 +85,7 @@ namespace NeaClient
                         File.AppendAllText(keyFile, keys[i][0] + "," + keys[i][1] + "\r\n"); // Saves the data to the file
                     }
                 }
-                else
-                {
-                    //TODO: possibly delete and replace but this is not required
-                }
             }
-
         }
     }
 }

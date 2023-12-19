@@ -41,10 +41,14 @@ namespace NeaClient
             }
             var jsonResponse = await response.Content.ReadAsStringAsync();
             dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-            
+
             if (jsonResponseObject.token is not null)
             {
-                user.Token = jsonResponseObject.token.ToString();
+                user = new User
+                {
+                    Token = jsonResponseObject.token.ToString()
+                };
+                // TODO: ask user to enter a backup of the private key, or generate a new key if the old one is lost
                 server = txtServerAddress.Text;
                 
                 Close();

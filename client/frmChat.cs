@@ -95,13 +95,43 @@ namespace NeaClient
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
                     // If any requests returned and keys exist for it encrypt and send them.
-                    foreach (dynamic request in jsonResponseObject)
+                    try
                     {
-
+                        foreach (dynamic request in jsonResponseObject)
+                        {
+                            response = await client.GetAsync("/api/user/getInfo?token=" + tokens[activeToken][1] + "&userID=" + request.UserID);
+                            var jsonResponseUser = await response.Content.ReadAsStringAsync();
+                            dynamic jsonResponseObjectUser = JsonConvert.DeserializeObject<dynamic>(jsonResponseUser);
+                            byte[] publicKey = Convert.FromBase64String((string)jsonResponseObjectUser.PublicKey);
+                            Guild guild = new Guild
+                            {
+                                ID = (string)request.GuildID,
+                            };
+                            guild.GetKey();
+                            if (guild.Key != null)
+                            {
+                                string keyCypherText;
+                                using (RSA rsa = RSA.Create())
+                                {
+                                    rsa.ImportRSAPublicKey(publicKey, out _);
+                                    keyCypherText = Convert.ToBase64String(rsa.Encrypt(guild.Key, RSAEncryptionPadding.OaepSHA256));
+                                }
+                                var content = new
+                                {
+                                    token = tokens[activeToken][1],
+                                    keyCypherText = keyCypherText,
+                                    guildID = guild.ID,
+                                    userID = (string)request.UserID,
+                                };
+                                response = await client.PostAsJsonAsync("/api/guild/key/submit", content);
+                                return;
+                            }
+                        }
                     }
+                    catch { }
                 }
             }
         }
@@ -191,7 +221,7 @@ namespace NeaClient
                 frmLogin.ShowDialog();
                 user = frmLogin.user;
                 server = frmLogin.server;
-                this.client = frmLogin.client;
+                client = frmLogin.client;
             }
             if (File.Exists(tokenFile)) // Checks if a token file has been created, and readse its contents if it has.
             {
@@ -203,8 +233,8 @@ namespace NeaClient
             }
             if (user != null && user.Token != null) // If the login form has responded with info, write it to the file.
             {
-                tokens.Add(new string[] { server, user.Token });
-                File.AppendAllText(tokenFile, tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] +  "," + Convert.ToBase64String(user.PrivateKey) + "\r\n");
+                tokens.Add(new string[] { server, user.Token , Convert.ToBase64String(user.PrivateKey) });
+                File.AppendAllText(tokenFile, tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] +  "," + tokens[tokens.Count - 1][2] + "\r\n");
                 if (removeInvalid == true)
                 {
                     removeToken(activeToken);
@@ -220,7 +250,7 @@ namespace NeaClient
             File.WriteAllText(tokenFile, ""); // Clear the file.
             for (int i = 0; i < tokens.Count; i++) // Re-write the token list to the file.
             {
-                File.AppendAllText(tokenFile, tokens[i][0] + "," + tokens[i][1] + "\r\n");
+                File.AppendAllText(tokenFile, tokens[i][0] + "," + tokens[i][1] + "," + tokens[i][2] + "\r\n");
             }
         }
         private void btnSend_Click(object sender, EventArgs e)
@@ -242,27 +272,28 @@ namespace NeaClient
             {
                 keyGuilds.Add(keys[i][0]); // Create list of just the guilds to be used to search through
             }
-            
 
             utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out bool found, out int keyIndex);
             if (!found)
             {
-                bool returned = await requestGuildKey(activeGuild.ID);
+                found = await requestGuildKey(activeGuild.ID);
+            }
+            if (!found)
+            {
+                txtKeyWarning.Show();
+                return;
             }
             try
             {
                 message.Encrypt(Convert.FromBase64String(keys[keyIndex][1]));
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+            catch {}
             // Send message to server
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             try
             {
-                var request = new 
+                var content = new 
                 { 
                     token = tokens[activeToken][1],
                     channelID = message.ChannelID, 
@@ -270,7 +301,7 @@ namespace NeaClient
                     IV = Convert.ToBase64String(message.IV)
                 };
                 
-                response = await client.PostAsJsonAsync("/api/content/sendMessage", request);
+                response = await client.PostAsJsonAsync("/api/content/sendMessage", content);
                 successfullConnection = true;
             }
             catch
@@ -310,26 +341,20 @@ namespace NeaClient
             int keyIndex;
             bool found;
             List<string[]> keys = utility.getKeys();
-            if (keys.Count == 0)
+            List<string> keyGuilds = new();
+            for (int i = 0; i < keys.Count; i++)
+            {
+                keyGuilds.Add(keys[i][0]); // Converts the keys and guilds array to an array of just guilds to search for the place to insert to.
+            }
+            utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out found, out keyIndex);
+            
+            if (!found)
+            {
+                found = await requestGuildKey(activeGuild.ID);
+            }
+            if (!found) // Run twice because if the key request is successfull it should evalueate to false
             {
                 txtKeyWarning.Visible = true;
-                requestGuildKey(activeGuild.ID);
-                return;
-            }
-            else
-            {
-                List<string> keyGuilds = new();
-                for (int i = 0; i < keys.Count; i++)
-                {
-                    keyGuilds.Add(keys[i][0]); // Converts the keys and guilds array to an array of just guilds to search for the place to insert to.
-                }
-                Utility utility = new();
-                utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out found, out keyIndex);
-            }
-            if (!found )
-            {
-                txtKeyWarning.Visible = true;
-                requestGuildKey(activeGuild.ID);
                 return;
             }
             HttpResponseMessage response = new HttpResponseMessage();
@@ -579,10 +604,10 @@ namespace NeaClient
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                if ((int)response.StatusCode == 200 && jsonResponseObject.ContainsKey("key")) // If the client has requested the keys previously and another user has submitted the keys, 
+                if ((int)response.StatusCode == 200 && jsonResponseObject != null && jsonResponseObject.ContainsKey("key")) // If the client has requested the keys previously and another user has submitted the keys, 
                 {
                     byte[] guildKey;
-                    keyCypherText = Convert.FromBase64String((string)jsonResponseObject.keys.key);
+                    keyCypherText = Convert.FromBase64String((string)jsonResponseObject.key);
                     User user = new();
                     user.ReadPrivateKey(tokenFile, activeToken);
                     // Decrypt guild key
@@ -596,9 +621,10 @@ namespace NeaClient
                     {
                         // If the key that has been submited is correct, save it to file.
                         utility.saveKey(guildID, guildKey);
+                        return true;
                     }
                 }
-                else if (jsonResponseObject.ContainsKey("errcode"))
+                else if (jsonResponseObject != null && jsonResponseObject.ContainsKey("errcode"))
                 {
                     showError(jsonResponseObject);
                 }
