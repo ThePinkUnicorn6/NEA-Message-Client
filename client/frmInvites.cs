@@ -66,7 +66,7 @@ namespace NeaClient
                 else
                 {
                     inviteCodes.Add(jsonResponseObject.code.ToString());
-                    cbInvites.Items.Add(jsonResponseObject.code);
+                    cbInvites.Items.Add(jsonResponseObject.code.ToString());
                 }
             }
         }
@@ -90,6 +90,7 @@ namespace NeaClient
                 if (jsonResponseObject.ContainsKey("errcode"))
                 {
                     showError(jsonResponseObject);
+                    Close();
                 }
                 else
                 {
@@ -108,10 +109,9 @@ namespace NeaClient
                 }
             }
         }
-
         private void cbInvites_SelectedIndexChanged(object sender, EventArgs e)
         {
-            Clipboard.SetText((string)((ListBox)sender).SelectedItem);
+            Clipboard.SetText((string)cbInvites.SelectedItem);
         }
     }
 }
