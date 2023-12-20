@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.pnlGuilds = new System.Windows.Forms.Panel();
             this.tvGuilds = new System.Windows.Forms.TreeView();
             this.txtSearch = new System.Windows.Forms.TextBox();
@@ -49,6 +50,7 @@
             this.invitesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlMessages = new System.Windows.Forms.Panel();
             this.txtKeyWarning = new System.Windows.Forms.TextBox();
+            this.tmrFulfillGuildRequests = new System.Windows.Forms.Timer(this.components);
             this.pnlGuilds.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlMessages.SuspendLayout();
@@ -263,6 +265,12 @@
     "k later once another user has shared theirs.";
             this.txtKeyWarning.Visible = false;
             // 
+            // tmrFulfillGuildRequests
+            // 
+            this.tmrFulfillGuildRequests.Enabled = true;
+            this.tmrFulfillGuildRequests.Interval = 120;
+            this.tmrFulfillGuildRequests.Tick += new System.EventHandler(this.tmrFulfillGuildRequests_Tick);
+            // 
             // frmChat
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -315,5 +323,6 @@
         private ToolStripMenuItem createInviteToolStripMenuItem;
         private ToolStripMenuItem viewInviteCodesToolStripMenuItem;
         private TextBox txtKeyWarning;
+        private System.Windows.Forms.Timer tmrFulfillGuildRequests;
     }
 }

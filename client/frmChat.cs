@@ -639,5 +639,10 @@ namespace NeaClient
         {
             // TODO: check for new messages periodicaly
         }
+
+        private void tmrFulfillGuildRequests_Tick(object sender, EventArgs e)
+        {
+            fulfillKeyRequests();
+        }
     }
 }
