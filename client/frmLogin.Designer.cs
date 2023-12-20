@@ -73,7 +73,7 @@
             this.txtServerAddress.Name = "txtServerAddress";
             this.txtServerAddress.Size = new System.Drawing.Size(226, 23);
             this.txtServerAddress.TabIndex = 3;
-            this.txtServerAddress.Text = "localhost:8080";
+            this.txtServerAddress.Text = "192.168.1.222:8080";
             // 
             // txtUsername
             // 

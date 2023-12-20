@@ -66,6 +66,7 @@ namespace NeaClient
             HttpResponseMessage response;
             try
             {
+                //TODO: Check adress contains no commas
                 client = new() { BaseAddress = new Uri("http://" + server) };
                 user = new User
                 {

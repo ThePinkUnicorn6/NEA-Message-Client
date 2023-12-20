@@ -51,6 +51,7 @@
             this.pnlMessages = new System.Windows.Forms.Panel();
             this.txtKeyWarning = new System.Windows.Forms.TextBox();
             this.tmrFulfillGuildRequests = new System.Windows.Forms.Timer(this.components);
+            this.tmrMessageCheck = new System.Windows.Forms.Timer(this.components);
             this.pnlGuilds.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlMessages.SuspendLayout();
@@ -271,6 +272,11 @@
             this.tmrFulfillGuildRequests.Interval = 120000;
             this.tmrFulfillGuildRequests.Tick += new System.EventHandler(this.tmrFulfillGuildRequests_Tick);
             // 
+            // tmrMessageCheck
+            // 
+            this.tmrMessageCheck.Interval = 1000;
+            this.tmrMessageCheck.Tick += new System.EventHandler(this.tmrMessageCheck_Tick);
+            // 
             // frmChat
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -324,5 +330,6 @@
         private ToolStripMenuItem viewInviteCodesToolStripMenuItem;
         private TextBox txtKeyWarning;
         private System.Windows.Forms.Timer tmrFulfillGuildRequests;
+        private System.Windows.Forms.Timer tmrMessageCheck;
     }
 }

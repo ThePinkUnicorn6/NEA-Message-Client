@@ -318,9 +318,9 @@ namespace NeaClient
                     message.UserID = jsonResponseObject.UserID;
                     message.UserName = jsonResponseObject.UserName;
                     message.Time = jsonResponseObject.Time;
-                    checkNewMessages();
+                    await checkNewMessages();
                     messages.Add(message);
-                    displayMessage(message);
+                    displayMessage(message, messages.Count);
                     txtMessageText.Text = "";
                 }
                 else
@@ -336,6 +336,7 @@ namespace NeaClient
 
         private async Task displayChannel(string channelID)
         {
+            activeChannelID = channelID;
             tblMessages.Controls.Clear();
             txtKeyWarning.Visible = false;
             int keyIndex;
@@ -357,6 +358,34 @@ namespace NeaClient
                 txtKeyWarning.Visible = true;
                 return;
             }
+            await fetchMessages(channelID);
+            tblMessages.SuspendLayout();
+            for (int i = 0; i < messages.Count; i++)
+            {
+                byte[] key = Convert.FromBase64String(keys[keyIndex][1]);
+                messages[i].Decrypt(key);
+                displayMessage(messages[i], i);
+            }
+            tblMessages.ResumeLayout();
+            UseWaitCursor = false;
+        }
+        private void displayMessage(Message message, int row)
+        {
+            RichTextBox rtbMessageText = new RichTextBox();
+            rtbMessageText.Text = message.ToString();
+            rtbMessageText.ReadOnly = true;
+            Size size = TextRenderer.MeasureText(rtbMessageText.Text, rtbMessageText.Font);
+            rtbMessageText.Height = size.Height;
+            rtbMessageText.Anchor = (System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right);
+            rtbMessageText.BorderStyle = BorderStyle.None;
+            rtbMessageText.BackColor = System.Drawing.Color.DarkOliveGreen;
+            rtbMessageText.ForeColor = System.Drawing.Color.White;
+            tblMessages.Controls.Add(rtbMessageText, 1, row);
+
+            // TODO: work out how to scroll the message into view
+        }
+        private async Task<List<Message>> fetchMessages(string channelID, string afterMessageID = null)
+        {
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             UseWaitCursor = true;
@@ -377,16 +406,13 @@ namespace NeaClient
             }
             catch
             {
-                dynamic jsonResponseError = JsonConvert.DeserializeObject<dynamic> (jsonResponse);
+                dynamic jsonResponseError = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 showError(jsonResponseError);
-                UseWaitCursor = false;
-                return;
+                return new List<Message>();
             }
             messages = new List<Message>();
             if (successfullConnection)
             {
-                
-                tblMessages.SuspendLayout();
                 for (int i = 0; i < jsonResponseObject.Count; i++)
                 {
                     byte[] IV;
@@ -405,37 +431,15 @@ namespace NeaClient
                         Time = jsonResponseObject[i].Time,
                         IV = IV
                     };
-                    byte[] key = Convert.FromBase64String(keys[keyIndex][1]);
-
-                    message.Decrypt(key);
                     messages.Add(message);
-                    displayMessage(message);
                 }
-                tblMessages.ResumeLayout();
-                activeChannelID = channelID;
-                UseWaitCursor = false;
             }
             else
             {
                 MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
             }
+            return messages;
         }
-        private void displayMessage(Message message)
-        {
-            RichTextBox rtbMessageText = new RichTextBox();
-            rtbMessageText.Text = message.ToString();
-            rtbMessageText.ReadOnly = true;
-            Size size = TextRenderer.MeasureText(rtbMessageText.Text, rtbMessageText.Font);
-            rtbMessageText.Height = size.Height;
-            rtbMessageText.Anchor = (System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right);
-            rtbMessageText.BorderStyle = BorderStyle.None;
-            rtbMessageText.BackColor = System.Drawing.Color.DarkOliveGreen;
-            rtbMessageText.ForeColor = System.Drawing.Color.White;
-            tblMessages.Controls.Add(rtbMessageText, 1, messages.Count);
-
-            // TODO: work out how to scroll the message into view
-        }
-
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
@@ -488,7 +492,7 @@ namespace NeaClient
                 guild = (Guild)e.Node.Parent.Tag;
             }
             activeGuild = guild;
-            displayChannel(channel.ID);
+            await displayChannel(channel.ID);
         }
         private async Task joinGuild(string inviteCode)
         {
@@ -637,12 +641,17 @@ namespace NeaClient
         }
         public async Task checkNewMessages()
         {
-            // TODO: check for new messages periodicaly
+            
         }
 
         private void tmrFulfillGuildRequests_Tick(object sender, EventArgs e)
         {
             fulfillKeyRequests();
+        }
+
+        private void tmrMessageCheck_Tick(object sender, EventArgs e)
+        {
+            checkNewMessages();
         }
     }
 }
