@@ -114,10 +114,5 @@ namespace NeaClient
         {
             Clipboard.SetText((string)cbInvites.SelectedItem);
         }
-
-        private void cbInvites_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            Clipboard.SetText((string)cbInvites.SelectedItem);
-        }
     }
 }
