@@ -268,7 +268,7 @@
             // tmrFulfillGuildRequests
             // 
             this.tmrFulfillGuildRequests.Enabled = true;
-            this.tmrFulfillGuildRequests.Interval = 120;
+            this.tmrFulfillGuildRequests.Interval = 120000;
             this.tmrFulfillGuildRequests.Tick += new System.EventHandler(this.tmrFulfillGuildRequests_Tick);
             // 
             // frmChat
