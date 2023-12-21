@@ -65,6 +65,7 @@ namespace NeaClient
                 UseWaitCursor = false;
                 if (!fillGuildSidebarSuccess)
                 {
+                    menuStrip1.Items["offlineIndicator"].Visible = true;
                     DialogResult retry = MessageBox.Show("Could not connect to " + tokens[activeToken][0] + ". Would you like to try again?", "Connection Error", MessageBoxButtons.YesNo);
                     if (retry != DialogResult.Yes)
                     {
@@ -93,6 +94,7 @@ namespace NeaClient
             }
             if (successfullConnection)
             {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -150,6 +152,7 @@ namespace NeaClient
             }
             if (successfullConnection)
             {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 if (response.StatusCode == HttpStatusCode.OK)
@@ -309,6 +312,7 @@ namespace NeaClient
             }
             if (successfullConnection)
             {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 if (response.IsSuccessStatusCode)
@@ -328,7 +332,11 @@ namespace NeaClient
             }
             else
             {
-                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                if (!menuStrip1.Items["offlineIndicator"].Visible)
+                {
+                    menuStrip1.Items["offlineIndicator"].Visible = true;
+                    MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                }
             }
         }
 
@@ -416,6 +424,7 @@ namespace NeaClient
             var recievedMessages = new List<Message>();
             if (successfullConnection)
             {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
                 for (int i = 0; i < jsonResponseObject.Count; i++)
                 {
                     byte[] IV;
@@ -439,7 +448,11 @@ namespace NeaClient
             }
             else
             {
-                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                if (!menuStrip1.Items["offlineIndicator"].Visible) // If the offline indicator is not visible
+                {
+                    menuStrip1.Items["offlineIndicator"].Visible = true;
+                    MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                }
             }
             return recievedMessages;
         }
@@ -494,7 +507,7 @@ namespace NeaClient
                 channel = (Channel)e.Node.Tag;
                 guild = (Guild)e.Node.Parent.Tag;
             }
-            guilds[activeGuildIndex] = guild;
+            activeGuildIndex = guilds.FindIndex(g => g.ID == guild.ID);
             await displayChannel(channel.ID);
         }
         private async Task joinGuild(string inviteCode)
@@ -517,6 +530,7 @@ namespace NeaClient
             }
             if (successfullConnection)
             {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 if (jsonResponseObject.ContainsKey("errcode"))
@@ -537,7 +551,10 @@ namespace NeaClient
             }
             else
             {
-                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                if (!menuStrip1.Items["offlineIndicator"].Visible) 
+                {
+                    MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                }
             }
         }
         private void joinGuildFromCodeToolStripMenuItem_Click(object sender, EventArgs e)
@@ -567,6 +584,7 @@ namespace NeaClient
             }
             if (successfullConnection)
             {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 if (jsonResponseObject.ContainsKey("errcode"))
@@ -576,7 +594,11 @@ namespace NeaClient
             }
             else
             {
-                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+ 
+                if (!menuStrip1.Items["offlineIndicator"].Visible)
+                {
+                    MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                }
             }
         }
 
@@ -609,6 +631,7 @@ namespace NeaClient
             }
             if (successfullConnection)
             {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 if ((int)response.StatusCode == 200 && jsonResponseObject != null && jsonResponseObject.ContainsKey("key")) // If the client has requested the keys previously and another user has submitted the keys, 
@@ -638,7 +661,10 @@ namespace NeaClient
             }
             else
             {
-                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                if (!menuStrip1.Items["offlineIndicator"].Visible) 
+                {
+                    MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                }
             }
             return false;
         }
@@ -671,7 +697,6 @@ namespace NeaClient
             {
                 displayNewMessages();
             }
-            
         }
     }
 }
