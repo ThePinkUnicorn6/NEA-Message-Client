@@ -532,7 +532,7 @@ namespace NeaClient
                 }
                 else
                 {
-                    fillGuildSidebar();
+                    requestGuildKey(jsonResponseObject.guildID);
                 }
             }
             else
@@ -544,6 +544,7 @@ namespace NeaClient
         {
             string inviteCode = Microsoft.VisualBasic.Interaction.InputBox("Join Guild", "Enter the invite code:");
             joinGuild(inviteCode);
+            fillGuildSidebar();
         }
 
         private async Task createInvite(object sender, EventArgs e)
@@ -666,7 +667,11 @@ namespace NeaClient
 
         private void tmrMessageCheck_Tick(object sender, EventArgs e)
         {
-            displayNewMessages();
+            if (activeChannelID != null)
+            {
+                displayNewMessages();
+            }
+            
         }
     }
 }
