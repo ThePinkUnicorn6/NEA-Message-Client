@@ -274,6 +274,7 @@
             // 
             // tmrMessageCheck
             // 
+            this.tmrMessageCheck.Enabled = true;
             this.tmrMessageCheck.Interval = 1000;
             this.tmrMessageCheck.Tick += new System.EventHandler(this.tmrMessageCheck_Tick);
             // 
