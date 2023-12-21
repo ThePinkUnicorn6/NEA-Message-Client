@@ -90,31 +90,6 @@ namespace NeaClient
                     return;
                 }
                 utility.saveKey(guildID, key);
-                //List<string[]> keys = new();
-                //try
-                //{
-                //    keys = File.ReadLines(keyFile).Select(x => x.Split(',')).ToList(); // Reads the key file
-                //}
-                //catch { MessageBox.Show("Key file corrupt!", "Error"); }
-                //if (keys.Count == 0) 
-                //{
-                //    File.WriteAllText(keyFile, guildID + "," + keyString); // If something has gone wrong and the file is empty, write to it.
-                //    Close();
-                //    return;
-                //}
-                //List<string> keyGuilds = new();
-                //for (int i = 0; i < keys.Count; i++)
-                //{
-                //    keyGuilds.Add(keys[i][0]); // Converts the keys and guilds array to an array of just gilds to search for the place to insert to.
-                //}
-                //Utility utility = new();
-                //utility.binarySearch(keyGuilds.ToArray(), guildID, out bool found, out int index);
-                //keys.Insert(index, new string[] { guildID, keyString }); // Inserts the new key and guild at the location needed
-                //File.WriteAllText(keyFile, ""); // Clear file before writing all the data back to it with the new guild included
-                //for (int i = 0; i < keys.Count; i++)
-                //{
-                //    File.AppendAllText(keyFile, keys[i][0] + "," + keys[i][1] + "\r\n"); // Saves the data to the file
-                //}
                 Close();
             }
             else
