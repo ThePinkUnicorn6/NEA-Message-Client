@@ -40,7 +40,7 @@ namespace NeaClient
                 index = lower;
             }
         }
-        public List<string[]> getKeys()
+        public List<string[]> getKeysFromFile()
         {
             List<string[]> keys = new();
             if (File.Exists(keyFile))

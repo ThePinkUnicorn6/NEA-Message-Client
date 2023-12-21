@@ -18,7 +18,7 @@ namespace NeaClient
         public void GetKey()
         {
             Utility utility = new Utility();
-            var keys = utility.getKeys();
+            var keys = utility.getKeysFromFile();
             List<string> keyGuilds = new List<string> { };
             for (int i = 0; i < keys.Count; i++)
             {

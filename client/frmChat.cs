@@ -19,7 +19,7 @@ namespace NeaClient
     {
         List<Message> messages = new List<Message>(); // Used to store all the loaded messages of the currently active channel.
         List<Guild> guilds = new List<Guild>();
-        Guild activeGuild;
+        int activeGuildIndex;
         string activeChannelID;
         List<string[]> tokens;
         int activeToken = 0; // Used to store the index of the token currently in use in the list tokens.
@@ -265,32 +265,32 @@ namespace NeaClient
                 ChannelID = activeChannelID,
             };
             if (string.IsNullOrWhiteSpace(message.PlainText)) { return; } // Do nothing if text box is empty.
-            
-            List <string[]> keys = utility.getKeys(); // Read keys from file
-            List <string> keyGuilds = new List<string> { }; 
-            for (int i = 0; i < keys.Count; i++)
+            if (guilds[activeGuildIndex].Key == null) // If the key is not held by the guild allready, read it from the file.
             {
-                keyGuilds.Add(keys[i][0]); // Create list of just the guilds to be used to search through
-            }
-
-            utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out bool found, out int keyIndex);
-            if (!found)
-            {
-                found = await requestGuildKey(activeGuild.ID);
-            }
-            if (!found)
-            {
-                txtKeyWarning.Show();
-                return;
+                guilds[activeGuildIndex].GetKey();
+                if (guilds[activeGuildIndex].Key == null) // If it is not in the file, request it
+                {
+                    bool fetchedSuccessfully = await requestGuildKey(guilds[activeGuildIndex].ID);
+                    if (fetchedSuccessfully) // If a key request has been previously made, another user might have submitted their keys, so the key should be in the keyfile.
+                    {
+                        guilds[activeGuildIndex].GetKey();
+                    }
+                    else
+                    {
+                        txtKeyWarning.Visible = true;
+                        return;
+                    }
+                }
             }
             try
             {
-                message.Encrypt(Convert.FromBase64String(keys[keyIndex][1]));
+                message.Encrypt(guilds[activeGuildIndex].Key);
             }
             catch {}
             // Send message to server
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
+            await displayNewMessages();
             try
             {
                 var content = new 
@@ -300,7 +300,6 @@ namespace NeaClient
                     messageText = message.CypherText, 
                     IV = Convert.ToBase64String(message.IV)
                 };
-                
                 response = await client.PostAsJsonAsync("/api/content/sendMessage", content);
                 successfullConnection = true;
             }
@@ -314,11 +313,10 @@ namespace NeaClient
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 if (response.IsSuccessStatusCode)
                 {
-                    message.ID = jsonResponseObject.MessageID;
+                    message.ID = jsonResponseObject.ID;
                     message.UserID = jsonResponseObject.UserID;
                     message.UserName = jsonResponseObject.UserName;
                     message.Time = jsonResponseObject.Time;
-                    await checkNewMessages();
                     messages.Add(message);
                     displayMessage(message, messages.Count);
                     txtMessageText.Text = "";
@@ -339,31 +337,30 @@ namespace NeaClient
             activeChannelID = channelID;
             tblMessages.Controls.Clear();
             txtKeyWarning.Visible = false;
-            int keyIndex;
-            bool found;
-            List<string[]> keys = utility.getKeys();
-            List<string> keyGuilds = new();
-            for (int i = 0; i < keys.Count; i++)
+            if (guilds[activeGuildIndex].Key == null) // If the key is not held by the guild allready, read it from the file.
             {
-                keyGuilds.Add(keys[i][0]); // Converts the keys and guilds array to an array of just guilds to search for the place to insert to.
+                guilds[activeGuildIndex].GetKey();
+                if (guilds[activeGuildIndex].Key == null) // If it is not in the file, request it
+                {
+                    bool fetchedSuccessfully = await requestGuildKey(guilds[activeGuildIndex].ID);
+                    if (fetchedSuccessfully) // If a key request has been previously made, another user might have submitted their keys, so the key should be in the keyfile.
+                    {
+                        guilds[activeGuildIndex].GetKey();
+                    }
+                    else
+                    {
+                        txtKeyWarning.Visible = true;
+                        return;
+                    }
+                }
             }
-            utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out found, out keyIndex);
-            
-            if (!found)
-            {
-                found = await requestGuildKey(activeGuild.ID);
-            }
-            if (!found) // Run twice because if the key request is successfull it should evalueate to false
-            {
-                txtKeyWarning.Visible = true;
-                return;
-            }
-            await fetchMessages(channelID);
+            UseWaitCursor = true;
+            messages = await fetchMessages(channelID);
+            UseWaitCursor = false;
             tblMessages.SuspendLayout();
             for (int i = 0; i < messages.Count; i++)
             {
-                byte[] key = Convert.FromBase64String(keys[keyIndex][1]);
-                messages[i].Decrypt(key);
+                messages[i].Decrypt(guilds[activeGuildIndex].Key);
                 displayMessage(messages[i], i);
             }
             tblMessages.ResumeLayout();
@@ -388,10 +385,16 @@ namespace NeaClient
         {
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
-            UseWaitCursor = true;
             try
             {
-                response = await client.GetAsync("/api/content/getMessages?token=" + tokens[activeToken][1] + "&channelID=" + channelID);
+                if (afterMessageID == null)
+                {
+                    response = await client.GetAsync("/api/content/getMessages?token=" + tokens[activeToken][1] + "&channelID=" + channelID);
+                }
+                else
+                {
+                    response = await client.GetAsync("/api/content/getMessages?token=" + tokens[activeToken][1] + "&channelID=" + channelID + "&afterMessageID=" + afterMessageID);
+                }
                 successfullConnection = true;
             }
             catch
@@ -410,7 +413,7 @@ namespace NeaClient
                 showError(jsonResponseError);
                 return new List<Message>();
             }
-            messages = new List<Message>();
+            var recievedMessages = new List<Message>();
             if (successfullConnection)
             {
                 for (int i = 0; i < jsonResponseObject.Count; i++)
@@ -431,14 +434,14 @@ namespace NeaClient
                         Time = jsonResponseObject[i].Time,
                         IV = IV
                     };
-                    messages.Add(message);
+                    recievedMessages.Add(message);
                 }
             }
             else
             {
                 MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
             }
-            return messages;
+            return recievedMessages;
         }
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -491,7 +494,7 @@ namespace NeaClient
                 channel = (Channel)e.Node.Tag;
                 guild = (Guild)e.Node.Parent.Tag;
             }
-            activeGuild = guild;
+            guilds[activeGuildIndex] = guild;
             await displayChannel(channel.ID);
         }
         private async Task joinGuild(string inviteCode)
@@ -537,7 +540,6 @@ namespace NeaClient
                 MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
             }
         }
-
         private void joinGuildFromCodeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string inviteCode = Microsoft.VisualBasic.Interaction.InputBox("Join Guild", "Enter the invite code:");
@@ -553,7 +555,7 @@ namespace NeaClient
                 var content = new
                 {
                     token = tokens[activeToken][1],
-                    guildID = activeGuild.ID
+                    guildID = guilds[activeGuildIndex].ID
                 };
                 response = await client.PostAsJsonAsync("/api/guild/createInvite", content);
                 successfullConnection = true;
@@ -579,9 +581,9 @@ namespace NeaClient
 
         private void invitesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (activeGuild != null)
+            if (guilds[activeGuildIndex] != null)
             {
-                Form invites = new frmInvites(activeGuild, tokens, activeToken);
+                Form invites = new frmInvites(guilds[activeGuildIndex], tokens, activeToken);
                 invites.Show();
             }
         }
@@ -621,7 +623,7 @@ namespace NeaClient
                         guildKey = rsa.Decrypt(keyCypherText, RSAEncryptionPadding.OaepSHA256);
                     }
                     // Check if key is valid
-                    if (Convert.ToBase64String(SHA256.HashData(guildKey)) == activeGuild.KeyDigest)
+                    if (Convert.ToBase64String(SHA256.HashData(guildKey)) == guilds[activeGuildIndex].KeyDigest)
                     {
                         // If the key that has been submited is correct, save it to file.
                         utility.saveKey(guildID, guildKey);
@@ -639,11 +641,24 @@ namespace NeaClient
             }
             return false;
         }
-        public async Task checkNewMessages()
+        public async Task displayNewMessages()
         {
-            
+            int initialMessageCount = messages.Count;
+            if (messages.Count > 0)
+            {
+                messages.AddRange(await fetchMessages(activeChannelID, messages[messages.Count - 1].ID));
+            }
+            if (messages.Count > initialMessageCount)
+            {
+                tblMessages.SuspendLayout();
+                for (int i = initialMessageCount; i < messages.Count; i++)
+                {
+                    messages[i].Decrypt(guilds[activeGuildIndex].Key);
+                    displayMessage(messages[i], i);
+                }
+                tblMessages.ResumeLayout();
+            }
         }
-
         private void tmrFulfillGuildRequests_Tick(object sender, EventArgs e)
         {
             fulfillKeyRequests();
@@ -651,7 +666,7 @@ namespace NeaClient
 
         private void tmrMessageCheck_Tick(object sender, EventArgs e)
         {
-            checkNewMessages();
+            displayNewMessages();
         }
     }
 }
