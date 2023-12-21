@@ -35,7 +35,6 @@ namespace NeaClient
             {
                 return dateTime.ToString("yyyy/MM/dd HH:mm");
             }
-
         }
 
         public void Encrypt(byte[] key)

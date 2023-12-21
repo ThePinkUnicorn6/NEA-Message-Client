@@ -10,8 +10,9 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Net.Http.Json;
 using Newtonsoft.Json;
-
 using System.Security.Cryptography;
+using System.Net;
+
 namespace NeaClient
 {
     public partial class frmChat : Form
@@ -71,10 +72,68 @@ namespace NeaClient
                     }
                 }
             } while (fillGuildSidebarSuccess == false);
+            fulfillKeyRequests();
         }
         private static void showError(dynamic jsonResponse)
         {
             MessageBox.Show(jsonResponse.error.ToString(), "Error: " + jsonResponse.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        private async Task fulfillKeyRequests()
+        {
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            try
+            {
+                response = await client.GetAsync("/api/guild/key/listRequests?token=" + tokens[activeToken][1]);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    // If any requests returned and keys exist for it encrypt and send them.
+                    try
+                    {
+                        foreach (dynamic request in jsonResponseObject)
+                        {
+                            response = await client.GetAsync("/api/user/getInfo?token=" + tokens[activeToken][1] + "&userID=" + request.UserID);
+                            var jsonResponseUser = await response.Content.ReadAsStringAsync();
+                            dynamic jsonResponseObjectUser = JsonConvert.DeserializeObject<dynamic>(jsonResponseUser);
+                            byte[] publicKey = Convert.FromBase64String((string)jsonResponseObjectUser.PublicKey);
+                            Guild guild = new Guild
+                            {
+                                ID = (string)request.GuildID,
+                            };
+                            guild.GetKey();
+                            if (guild.Key != null)
+                            {
+                                string keyCypherText;
+                                using (RSA rsa = RSA.Create())
+                                {
+                                    rsa.ImportRSAPublicKey(publicKey, out _);
+                                    keyCypherText = Convert.ToBase64String(rsa.Encrypt(guild.Key, RSAEncryptionPadding.OaepSHA256));
+                                }
+                                var content = new
+                                {
+                                    token = tokens[activeToken][1],
+                                    keyCypherText = keyCypherText,
+                                    guildID = guild.ID,
+                                    userID = (string)request.UserID,
+                                };
+                                response = await client.PostAsJsonAsync("/api/guild/key/submit", content);
+                                return;
+                            }
+                        }
+                    }
+                    catch { }
+                }
+            }
         }
         public async Task<bool> fillGuildSidebar()
         {
@@ -93,7 +152,7 @@ namespace NeaClient
             {
                 var jsonResponse = await response.Content.ReadAsStringAsync();
                 dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                if (response.StatusCode == System.Net.HttpStatusCode.OK)
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
                     guilds = new List<Guild>();
                     foreach (dynamic item in jsonResponseObject)
@@ -118,6 +177,7 @@ namespace NeaClient
                                 ID = item["guildID"],
                                 OwnerID = item["ownerID"],
                                 Description = item["guildDesc"],
+                                KeyDigest = item["guildKeyDigest"],
                                 Channels = channels
                             });
                         }
@@ -154,14 +214,14 @@ namespace NeaClient
         }
         public void addLogin(bool removeInvalid = false)
         {
-            string token;
+            User user;
             string server;
             using (var frmLogin = new frmLogin()) // Opens the login form and saves its responses.
             {
                 frmLogin.ShowDialog();
-                token = frmLogin.token;
+                user = frmLogin.user;
                 server = frmLogin.server;
-                this.client = frmLogin.client;
+                client = frmLogin.client;
             }
             if (File.Exists(tokenFile)) // Checks if a token file has been created, and readse its contents if it has.
             {
@@ -171,10 +231,10 @@ namespace NeaClient
             {
                 tokens = new List<string[]>();
             }
-            if (!string.IsNullOrEmpty(token)) // If the login form has responded with info, write it to the file.
+            if (user != null && user.Token != null) // If the login form has responded with info, write it to the file.
             {
-                tokens.Add(new string[] { server, token });
-                File.AppendAllText(tokenFile, tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] + "\r\n");
+                tokens.Add(new string[] { server, user.Token , Convert.ToBase64String(user.PrivateKey) });
+                File.AppendAllText(tokenFile, tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] +  "," + tokens[tokens.Count - 1][2] + "\r\n");
                 if (removeInvalid == true)
                 {
                     removeToken(activeToken);
@@ -190,7 +250,7 @@ namespace NeaClient
             File.WriteAllText(tokenFile, ""); // Clear the file.
             for (int i = 0; i < tokens.Count; i++) // Re-write the token list to the file.
             {
-                File.AppendAllText(tokenFile, tokens[i][0] + "," + tokens[i][1] + "\r\n");
+                File.AppendAllText(tokenFile, tokens[i][0] + "," + tokens[i][1] + "," + tokens[i][2] + "\r\n");
             }
         }
         private void btnSend_Click(object sender, EventArgs e)
@@ -212,27 +272,28 @@ namespace NeaClient
             {
                 keyGuilds.Add(keys[i][0]); // Create list of just the guilds to be used to search through
             }
-            
 
             utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out bool found, out int keyIndex);
             if (!found)
             {
-                requestGuildKey(activeGuild.ID);
+                found = await requestGuildKey(activeGuild.ID);
+            }
+            if (!found)
+            {
+                txtKeyWarning.Show();
+                return;
             }
             try
             {
                 message.Encrypt(Convert.FromBase64String(keys[keyIndex][1]));
             }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+            catch {}
             // Send message to server
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             try
             {
-                var request = new 
+                var content = new 
                 { 
                     token = tokens[activeToken][1],
                     channelID = message.ChannelID, 
@@ -240,7 +301,7 @@ namespace NeaClient
                     IV = Convert.ToBase64String(message.IV)
                 };
                 
-                response = await client.PostAsJsonAsync("/api/content/sendMessage", request);
+                response = await client.PostAsJsonAsync("/api/content/sendMessage", content);
                 successfullConnection = true;
             }
             catch
@@ -257,9 +318,9 @@ namespace NeaClient
                     message.UserID = jsonResponseObject.UserID;
                     message.UserName = jsonResponseObject.UserName;
                     message.Time = jsonResponseObject.Time;
-                    checkNewMessages();
+                    await checkNewMessages();
                     messages.Add(message);
-                    displayMessage(message);
+                    displayMessage(message, messages.Count);
                     txtMessageText.Text = "";
                 }
                 else
@@ -275,33 +336,56 @@ namespace NeaClient
 
         private async Task displayChannel(string channelID)
         {
+            activeChannelID = channelID;
             tblMessages.Controls.Clear();
             txtKeyWarning.Visible = false;
             int keyIndex;
             bool found;
             List<string[]> keys = utility.getKeys();
-            if (keys.Count == 0)
+            List<string> keyGuilds = new();
+            for (int i = 0; i < keys.Count; i++)
+            {
+                keyGuilds.Add(keys[i][0]); // Converts the keys and guilds array to an array of just guilds to search for the place to insert to.
+            }
+            utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out found, out keyIndex);
+            
+            if (!found)
+            {
+                found = await requestGuildKey(activeGuild.ID);
+            }
+            if (!found) // Run twice because if the key request is successfull it should evalueate to false
             {
                 txtKeyWarning.Visible = true;
-                requestGuildKey(activeGuild.ID);
                 return;
             }
-            else
+            await fetchMessages(channelID);
+            tblMessages.SuspendLayout();
+            for (int i = 0; i < messages.Count; i++)
             {
-                List<string> keyGuilds = new();
-                for (int i = 0; i < keys.Count; i++)
-                {
-                    keyGuilds.Add(keys[i][0]); // Converts the keys and guilds array to an array of just guilds to search for the place to insert to.
-                }
-                Utility utility = new();
-                utility.binarySearch(keyGuilds.ToArray(), activeGuild.ID, out found, out keyIndex);
+                byte[] key = Convert.FromBase64String(keys[keyIndex][1]);
+                messages[i].Decrypt(key);
+                displayMessage(messages[i], i);
             }
-            if (!found )
-            {
-                txtKeyWarning.Visible = true;
-                requestGuildKey(activeGuild.ID);
-                return;
-            }
+            tblMessages.ResumeLayout();
+            UseWaitCursor = false;
+        }
+        private void displayMessage(Message message, int row)
+        {
+            RichTextBox rtbMessageText = new RichTextBox();
+            rtbMessageText.Text = message.ToString();
+            rtbMessageText.ReadOnly = true;
+            Size size = TextRenderer.MeasureText(rtbMessageText.Text, rtbMessageText.Font);
+            rtbMessageText.Height = size.Height;
+            rtbMessageText.Anchor = (System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right);
+            rtbMessageText.BorderStyle = BorderStyle.None;
+            rtbMessageText.BackColor = System.Drawing.Color.DarkOliveGreen;
+            rtbMessageText.ForeColor = System.Drawing.Color.White;
+            tblMessages.Controls.Add(rtbMessageText, 1, row);
+
+            // TODO: work out how to scroll the message into view
+        }
+        private async Task<List<Message>> fetchMessages(string channelID, string afterMessageID = null)
+        {
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             UseWaitCursor = true;
@@ -320,18 +404,15 @@ namespace NeaClient
             {
                 jsonResponseObject = JsonConvert.DeserializeObject<List<dynamic>>(jsonResponse);
             }
-            catch (JsonSerializationException ex)
+            catch
             {
-                dynamic jsonResponseError = JsonConvert.DeserializeObject<dynamic> (jsonResponse);
+                dynamic jsonResponseError = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
                 showError(jsonResponseError);
-                UseWaitCursor = false;
-                return;
+                return new List<Message>();
             }
             messages = new List<Message>();
             if (successfullConnection)
             {
-                
-                tblMessages.SuspendLayout();
                 for (int i = 0; i < jsonResponseObject.Count; i++)
                 {
                     byte[] IV;
@@ -350,37 +431,15 @@ namespace NeaClient
                         Time = jsonResponseObject[i].Time,
                         IV = IV
                     };
-                    byte[] key = Convert.FromBase64String(keys[keyIndex][1]);
-
-                    message.Decrypt(key);
                     messages.Add(message);
-                    displayMessage(message);
                 }
-                tblMessages.ResumeLayout();
-                activeChannelID = channelID;
-                UseWaitCursor = false;
             }
             else
             {
                 MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
             }
+            return messages;
         }
-        private void displayMessage(Message message)
-        {
-            RichTextBox rtbMessageText = new RichTextBox();
-            rtbMessageText.Text = message.ToString();
-            rtbMessageText.ReadOnly = true;
-            Size size = TextRenderer.MeasureText(rtbMessageText.Text, rtbMessageText.Font);
-            rtbMessageText.Height = size.Height;
-            rtbMessageText.Anchor = (System.Windows.Forms.AnchorStyles.Left | System.Windows.Forms.AnchorStyles.Right);
-            rtbMessageText.BorderStyle = BorderStyle.None;
-            rtbMessageText.BackColor = System.Drawing.Color.DarkOliveGreen;
-            rtbMessageText.ForeColor = System.Drawing.Color.White;
-            tblMessages.Controls.Add(rtbMessageText, 1, messages.Count);
-
-            // TODO: work out how to scroll the message into view
-        }
-
         private void fileToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
@@ -433,7 +492,7 @@ namespace NeaClient
                 guild = (Guild)e.Node.Parent.Tag;
             }
             activeGuild = guild;
-            displayChannel(channel.ID);
+            await displayChannel(channel.ID);
         }
         private async Task joinGuild(string inviteCode)
         {
@@ -526,13 +585,73 @@ namespace NeaClient
                 invites.Show();
             }
         }
-        public void requestGuildKey(string guildID)
+        public async Task<bool> requestGuildKey(string guildID)
         {
-            // TODO: make key request
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            byte[] keyCypherText;
+            try
+            {
+                var content = new
+                {
+                    token = tokens[activeToken][1],
+                    guildID = guildID
+                };
+                response = await client.PostAsJsonAsync("/api/guild/key/request", content);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if ((int)response.StatusCode == 200 && jsonResponseObject != null && jsonResponseObject.ContainsKey("key")) // If the client has requested the keys previously and another user has submitted the keys, 
+                {
+                    byte[] guildKey;
+                    keyCypherText = Convert.FromBase64String((string)jsonResponseObject.key);
+                    User user = new();
+                    user.ReadPrivateKey(tokenFile, activeToken);
+                    // Decrypt guild key
+                    using (RSA rsa = RSA.Create())
+                    {
+                        rsa.ImportRSAPrivateKey(user.PrivateKey, out _);
+                        guildKey = rsa.Decrypt(keyCypherText, RSAEncryptionPadding.OaepSHA256);
+                    }
+                    // Check if key is valid
+                    if (Convert.ToBase64String(SHA256.HashData(guildKey)) == activeGuild.KeyDigest)
+                    {
+                        // If the key that has been submited is correct, save it to file.
+                        utility.saveKey(guildID, guildKey);
+                        return true;
+                    }
+                }
+                else if (jsonResponseObject != null && jsonResponseObject.ContainsKey("errcode"))
+                {
+                    showError(jsonResponseObject);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+            }
+            return false;
         }
         public async Task checkNewMessages()
         {
+            
+        }
 
+        private void tmrFulfillGuildRequests_Tick(object sender, EventArgs e)
+        {
+            fulfillKeyRequests();
+        }
+
+        private void tmrMessageCheck_Tick(object sender, EventArgs e)
+        {
+            checkNewMessages();
         }
     }
 }
