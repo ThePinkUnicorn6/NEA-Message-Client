@@ -63,6 +63,7 @@
             this.cbInvites.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
             this.cbInvites.Size = new System.Drawing.Size(172, 199);
             this.cbInvites.TabIndex = 2;
+            this.cbInvites.SelectedIndexChanged += new System.EventHandler(this.cbInvites_SelectedIndexChanged);
             // 
             // frmInvites
             // 

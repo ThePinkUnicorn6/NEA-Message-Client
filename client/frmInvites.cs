@@ -26,7 +26,6 @@ namespace NeaClient
             this.activeToken = activeToken;
             this.guild = guild;
             client = new() { BaseAddress = new Uri("http://" + tokens[activeToken][0]) };
-
         }
         private async void frmInvites_Load(object sender, EventArgs e)
         {
