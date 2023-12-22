@@ -17,6 +17,7 @@ namespace NeaClient
 {
     public partial class frmChat : Form
     {
+        private readonly SemaphoreSlim modifyMsgListSS = new SemaphoreSlim(1, 1); // Used to make sure only one task is running at once that can modify the message list, otherwise it can change at the same time another task is modifying it leading to problems
         List<Message> messages = new List<Message>(); // Used to store all the loaded messages of the currently active channel.
         List<Guild> guilds = new List<Guild>();
         int activeGuildIndex;
@@ -256,18 +257,28 @@ namespace NeaClient
                 File.AppendAllText(tokenFile, tokens[i][0] + "," + tokens[i][1] + "," + tokens[i][2] + "\r\n");
             }
         }
-        private void btnSend_Click(object sender, EventArgs e)
+        private async void btnSend_Click(object sender, EventArgs e)
         {
-            sendMessage();
+            await modifyMsgListSS.WaitAsync();
+            try
+            {
+                await sendMessage();
+            }
+            finally
+            {
+                modifyMsgListSS.Release();
+            }
         }
         private async Task sendMessage()
         {
+            await displayNewMessages();
             Message message = new Message
             {
                 PlainText = txtMessageText.Text,
                 ChannelID = activeChannelID,
             };
             if (string.IsNullOrWhiteSpace(message.PlainText)) { return; } // Do nothing if text box is empty.
+            if (activeChannelID == null) { return; }
             if (guilds[activeGuildIndex].Key == null) // If the key is not held by the guild allready, read it from the file.
             {
                 guilds[activeGuildIndex].GetKey();
@@ -293,7 +304,6 @@ namespace NeaClient
             // Send message to server
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
-            await displayNewMessages();
             try
             {
                 var content = new 
@@ -391,6 +401,7 @@ namespace NeaClient
         }
         private async Task<List<Message>> fetchMessages(string channelID, string afterMessageID = null)
         {
+            var recievedMessages = new List<Message>();
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             try
@@ -421,7 +432,6 @@ namespace NeaClient
                 showError(jsonResponseError);
                 return new List<Message>();
             }
-            var recievedMessages = new List<Message>();
             if (successfullConnection)
             {
                 menuStrip1.Items["offlineIndicator"].Visible = false;
@@ -466,7 +476,15 @@ namespace NeaClient
             if (e.KeyCode == Keys.Enter && Control.ModifierKeys != Keys.Shift)
             {
                 e.SuppressKeyPress = true;
-                await sendMessage();
+                await modifyMsgListSS.WaitAsync();
+                try
+                {
+                    await sendMessage();
+                }
+                finally 
+                {
+                    modifyMsgListSS.Release();
+                }
             }
         }
 
@@ -691,11 +709,19 @@ namespace NeaClient
             fulfillKeyRequests();
         }
 
-        private void tmrMessageCheck_Tick(object sender, EventArgs e)
+        private async void tmrMessageCheck_Tick(object sender, EventArgs e)
         {
             if (activeChannelID != null)
             {
-                displayNewMessages();
+                await modifyMsgListSS.WaitAsync();
+                try
+                {
+                    await displayNewMessages();
+                }
+                finally
+                {
+                    modifyMsgListSS.Release();
+                }
             }
         }
     }
