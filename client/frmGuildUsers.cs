@@ -12,14 +12,14 @@ using System.Net.Http.Json;
 
 namespace NeaClient
 {
-    public partial class frmInvites : Form
+    public partial class frmGuildUsers : Form
     {
         List<string[]> tokens;
-        List<string> inviteCodes;
+        Dictionary<string, dynamic> userInfo;
         int activeToken;
         Guild guild;
         HttpClient client;
-        public frmInvites(Guild guild, List<string[]> tokens, int activeToken)
+        public frmGuildUsers(Guild guild, List<string[]> tokens, int activeToken)
         {
             InitializeComponent();
             this.tokens = tokens;
@@ -29,15 +29,15 @@ namespace NeaClient
         }
         private async void frmInvites_Load(object sender, EventArgs e)
         {
-            await fetchInvites();
-            displayInvites();
+            await fetchUsers();
+            displayUsers();
         }
 
         private static void showError(dynamic jsonResponse)
         {
             MessageBox.Show(jsonResponse.error.ToString(), "Error: " + jsonResponse.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-        private async void btnCreate_Click(object sender, EventArgs e)
+        private async void btnTogglePerms_Click(object sender, EventArgs e)
         {
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
@@ -48,7 +48,7 @@ namespace NeaClient
                     token = tokens[activeToken][1],
                     guildID = guild.ID
                 };
-                response = await client.PostAsJsonAsync("/api/guild/invite/create", content);
+                response = await client.PostAsJsonAsync("/api/guild/users/setPerms", content);
                 successfullConnection = true;
             }
             catch
@@ -65,18 +65,18 @@ namespace NeaClient
                 }
                 else
                 {
-                    inviteCodes.Add(jsonResponseObject.code.ToString());
-                    cbInvites.Items.Add(jsonResponseObject.code.ToString());
+                    //inviteCodes.Add(jsonResponseObject.code.ToString());
+                    //tblUsers.Items.Add(jsonResponseObject.code.ToString());
                 }
             }
         }
-        private async Task fetchInvites()
+        private async Task fetchUsers()
         {
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/invite/list?token=" + tokens[activeToken][1] + "&guildID=" + guild.ID);
+                response = await client.GetAsync("/api/guild/users/list?token=" + tokens[activeToken][1] + "&guildID=" + guild.ID);
                 successfullConnection = true;
             }
             catch
@@ -94,24 +94,51 @@ namespace NeaClient
                 }
                 else
                 {
-                    inviteCodes = new List<string>(jsonResponseObject.inviteCodes.ToObject<string[]>());
+                    userInfo = JsonConvert.DeserializeObject<Dictionary<string, dynamic>>(jsonResponse);
                 }
             }
         }
-        private void displayInvites()
+        private void displayUsers()
         {
-            cbInvites.Items.Clear();
-            if (inviteCodes != null && inviteCodes.Count > 0)
+            tblUsers.Controls.Clear();
+            if (userInfo != null && userInfo.Count > 0)
             {
-                foreach (string code in inviteCodes)
+                int i = 0;
+                foreach (var user in userInfo)
                 {
-                    cbInvites.Items.Add(code);
+                    int permission = user.Value.permissions;
+                    char badge;
+
+                    if (permission == 4) { badge = 'A'; }
+                    else if (permission == 5) { badge = 'O'; }
+                    else { badge = ' '; }
+                    Label lblBadge = new()
+                    {
+                        Padding = new Padding(0,6,0,0),
+                        Text = badge.ToString()
+                    };
+                    CheckBox checkBox = new()
+                    {
+                        Text = user.Value.userName,
+                        Tag = user.Key
+                    };
+                    checkBox.CheckedChanged += new EventHandler(CheckBox_CheckedChanged);
+                    tblUsers.Controls.Add(checkBox, 0, i);
+                    tblUsers.Controls.Add(lblBadge, 1, i);
+
+                    i++;
                 }
             }
         }
-        private void cbInvites_SelectedIndexChanged(object sender, EventArgs e)
+
+        private static void CheckBox_CheckedChanged(object? sender, EventArgs e)
         {
-            Clipboard.SetText((string)cbInvites.SelectedItem);
+            
+        }
+
+        private void btnKick_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }
