@@ -20,7 +20,7 @@ namespace NeaClient
         private readonly SemaphoreSlim modifyMsgListSS = new SemaphoreSlim(1, 1); // Used to make sure only one task is running at once that can modify the message list, otherwise it can change at the same time another task is modifying it leading to problems
         List<Message> messages = new List<Message>(); // Used to store all the loaded messages of the currently active channel.
         List<Guild> guilds = new List<Guild>();
-        int activeGuildIndex;
+        int activeGuildIndex = -1;
         string activeChannelID;
         List<string[]> tokens;
         int activeToken = 0; // Used to store the index of the token currently in use in the list tokens.
@@ -622,10 +622,18 @@ namespace NeaClient
 
         private void invitesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (guilds[activeGuildIndex] != null)
+            if (activeGuildIndex > 0)
             {
                 Form invites = new frmInvites(guilds[activeGuildIndex], tokens, activeToken);
                 invites.Show();
+            }
+        }
+        private void listUsersToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (activeGuildIndex > 0)
+            {
+                Form guildUsers = new frmGuildUsers(guilds[activeGuildIndex], tokens, activeToken);
+                guildUsers.Show();
             }
         }
         public async Task<bool> requestGuildKey(string guildID)

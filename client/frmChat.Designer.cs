@@ -230,6 +230,7 @@
             this.listUsersToolStripMenuItem.Name = "listUsersToolStripMenuItem";
             this.listUsersToolStripMenuItem.Size = new System.Drawing.Size(154, 22);
             this.listUsersToolStripMenuItem.Text = "List Users";
+            this.listUsersToolStripMenuItem.Click += new System.EventHandler(this.listUsersToolStripMenuItem_Click);
             // 
             // invitesToolStripMenuItem
             // 
