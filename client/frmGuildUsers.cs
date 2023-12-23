@@ -39,36 +39,47 @@ namespace NeaClient
         }
         private async void btnTogglePerms_Click(object sender, EventArgs e)
         {
-            HttpResponseMessage response = new HttpResponseMessage();
-            bool successfullConnection;
-            try
+            for (int i = 0; i < tblUsers.Controls.Count; i++)
             {
-                var content = new
+                CheckBox checkBox = (CheckBox)tblUsers.GetControlFromPosition(0, i);
+                if (checkBox.CheckState == CheckState.Checked)
                 {
-                    token = tokens[activeToken][1],
-                    guildID = guild.ID
-                };
-                response = await client.PostAsJsonAsync("/api/guild/users/setPerms", content);
-                successfullConnection = true;
-            }
-            catch
-            {
-                successfullConnection = false;
-            }
-            if (successfullConnection)
-            {
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                if (jsonResponseObject.ContainsKey("errcode"))
-                {
-                    showError(jsonResponseObject);
+                    HttpResponseMessage response = new HttpResponseMessage();
+                    bool successfullConnection;
+                    try
+                    {
+                        var content = new
+                        {
+                            token = tokens[activeToken][1],
+                            guildID = guild.ID,
+                            userID = checkBox.Tag.ToString(),
+                        };
+                        response = await client.PostAsJsonAsync("/api/guild/users/togglePerms", content);
+                        successfullConnection = true;
+                    }
+                    catch
+                    {
+                        successfullConnection = false;
+                    }
+                    if (successfullConnection)
+                    {
+                        var jsonResponse = await response.Content.ReadAsStringAsync();
+                        dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                        if (jsonResponseObject.ContainsKey("errcode"))
+                        {
+                            showError(jsonResponseObject);
+                        }
+                        else
+                        {
+                            int permissions = userInfo[(string)checkBox.Tag].permissions;
+                            if (permissions == 3) permissions++;
+                            else if (permissions == 4) permissions--;
+                            userInfo[(string)checkBox.Tag].permissions = permissions;
+                        }
+                    }
                 }
-                else
-                {
-                    //inviteCodes.Add(jsonResponseObject.code.ToString());
-                    //tblUsers.Items.Add(jsonResponseObject.code.ToString());
-                }
             }
+            displayUsers();
         }
         private async Task fetchUsers()
         {
@@ -122,7 +133,6 @@ namespace NeaClient
                         Text = user.Value.userName,
                         Tag = user.Key
                     };
-                    checkBox.CheckedChanged += new EventHandler(CheckBox_CheckedChanged);
                     tblUsers.Controls.Add(checkBox, 0, i);
                     tblUsers.Controls.Add(lblBadge, 1, i);
 
@@ -130,15 +140,32 @@ namespace NeaClient
                 }
             }
         }
-
-        private static void CheckBox_CheckedChanged(object? sender, EventArgs e)
+        private async void btnKick_Click(object sender, EventArgs e)
         {
-            
-        }
-
-        private void btnKick_Click(object sender, EventArgs e)
-        {
-
+            for (int i = 0; i < tblUsers.Controls.Count; i++)
+            {
+                CheckBox checkBox = (CheckBox)tblUsers.GetControlFromPosition(0, i);
+                if (checkBox.CheckState == CheckState.Checked)
+                {
+                    HttpResponseMessage response = new HttpResponseMessage();
+                    bool successfullConnection;
+                    try
+                    {
+                        var content = new
+                        {
+                            userID = checkBox.Text,
+                            token = tokens[activeToken][1],
+                            guildID = guild.ID
+                        };
+                        response = await client.PostAsJsonAsync("/api/guild/users/kick", content);
+                        successfullConnection = true;
+                    }
+                    catch
+                    {
+                        successfullConnection = false;
+                    }
+                }
+            }
         }
     }
 }
