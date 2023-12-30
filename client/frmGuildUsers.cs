@@ -16,16 +16,16 @@ namespace NeaClient
     {
         List<string[]> tokens;
         Dictionary<string, dynamic> userInfo;
-        int activeToken;
         Guild guild;
         HttpClient client;
-        public frmGuildUsers(Guild guild, List<string[]> tokens, int activeToken)
+        User activeUser;
+        public frmGuildUsers(Guild guild, User activeUser)
         {
             InitializeComponent();
             this.tokens = tokens;
-            this.activeToken = activeToken;
             this.guild = guild;
-            client = new() { BaseAddress = new Uri("http://" + tokens[activeToken][0]) };
+            this.activeUser = activeUser;
+            client = new() { BaseAddress = new Uri("http://" + activeUser.ServerURL) };
         }
         private async void frmInvites_Load(object sender, EventArgs e)
         {
@@ -39,7 +39,7 @@ namespace NeaClient
         }
         private async void btnTogglePerms_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < tblUsers.Controls.Count; i++)
+            for (int i = 0; i <= tblUsers.RowCount; i++)
             {
                 CheckBox checkBox = (CheckBox)tblUsers.GetControlFromPosition(0, i);
                 if (checkBox.CheckState == CheckState.Checked)
@@ -50,7 +50,7 @@ namespace NeaClient
                     {
                         var content = new
                         {
-                            token = tokens[activeToken][1],
+                            token = activeUser.Token,
                             guildID = guild.ID,
                             userID = checkBox.Tag.ToString(),
                         };
@@ -65,11 +65,11 @@ namespace NeaClient
                     {
                         var jsonResponse = await response.Content.ReadAsStringAsync();
                         dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                        if (jsonResponseObject.ContainsKey("errcode"))
+                        if (jsonResponseObject != null && jsonResponseObject.ContainsKey("errcode"))
                         {
                             showError(jsonResponseObject);
                         }
-                        else
+                        else if (response.IsSuccessStatusCode)
                         {
                             int permissions = userInfo[(string)checkBox.Tag].permissions;
                             if (permissions == 3) permissions++;
@@ -87,7 +87,7 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/users/list?token=" + tokens[activeToken][1] + "&guildID=" + guild.ID);
+                response = await client.GetAsync("/api/guild/users/list?token=" + activeUser.Token + "&guildID=" + guild.ID);
                 successfullConnection = true;
             }
             catch
@@ -154,7 +154,7 @@ namespace NeaClient
                         var content = new
                         {
                             userID = checkBox.Text,
-                            token = tokens[activeToken][1],
+                            token = activeUser.Token,
                             guildID = guild.ID
                         };
                         response = await client.PostAsJsonAsync("/api/guild/users/kick", content);
