@@ -22,8 +22,6 @@ namespace NeaClient
         List<Guild> guilds = new List<Guild>();
         int activeGuildIndex = -1;
         string activeChannelID;
-        List<string[]> tokens;
-        int activeToken = 0; // Used to store the index of the token currently in use in the list tokens.
         User activeUser = new User(); // Used to store the information of the logged in user.
         HttpClient client;
         Utility utility = new Utility();
@@ -36,6 +34,7 @@ namespace NeaClient
         }
         private async void frmChat_Load(object sender, EventArgs e)
         {
+            List<string[]> tokens = new List<string[]>{};
             try
             {
                 if (File.ReadAllText(tokenFile) == "") // If the tokens file has no tokens open the login page.
@@ -43,6 +42,11 @@ namespace NeaClient
                     addLogin();
                 }
                 tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
+                activeUser = new User
+                {
+                    Token = tokens[0][1],
+                    ServerURL = tokens[0][0]
+                };
             }
             catch // If the tokens file does not exist, open the login page.
             {
@@ -53,11 +57,8 @@ namespace NeaClient
                 this.Close();
                 return; // Return, otherwise it starts running the next code and errors.
             }
-            client = new() { BaseAddress = new Uri("http://" + tokens[activeToken][0]) };
-            activeUser = new User 
-            {
+            client = new() { BaseAddress = new Uri("http://" + activeUser.ServerURL) };
 
-            };
             bool fillGuildSidebarSuccess;
             do
             {
@@ -67,13 +68,16 @@ namespace NeaClient
                 if (!fillGuildSidebarSuccess)
                 {
                     menuStrip1.Items["offlineIndicator"].Visible = true;
-                    DialogResult retry = MessageBox.Show("Could not connect to " + tokens[activeToken][0] + ". Would you like to try again?", "Connection Error", MessageBoxButtons.YesNo);
+                    DialogResult retry = MessageBox.Show("Could not connect to " + activeUser.Token + ". Would you like to try again?", "Connection Error", MessageBoxButtons.YesNo);
                     if (retry != DialogResult.Yes)
                     {
                         Close();
                     }
                 }
             } while (fillGuildSidebarSuccess == false);
+            activeUser = await fetchUserInfo(token: activeUser.Token);
+            activeUser.ServerURL = tokens[0][0];
+            this.Text = "Home - " + activeUser.Name;
             fulfillKeyRequests();
         }
         private static void showError(dynamic jsonResponse)
@@ -86,7 +90,7 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/key/listRequests?token=" + tokens[activeToken][1]);
+                response = await client.GetAsync("/api/guild/key/listRequests?token=" + activeUser.Token);
                 successfullConnection = true;
             }
             catch
@@ -105,7 +109,7 @@ namespace NeaClient
                     {
                         foreach (dynamic request in jsonResponseObject)
                         {
-                            response = await client.GetAsync("/api/user/getInfo?token=" + tokens[activeToken][1] + "&userID=" + request.UserID);
+                            response = await client.GetAsync("/api/user/getInfo?token=" + activeUser.Token + "&userID=" + request.UserID);
                             var jsonResponseUser = await response.Content.ReadAsStringAsync();
                             dynamic jsonResponseObjectUser = JsonConvert.DeserializeObject<dynamic>(jsonResponseUser);
                             byte[] publicKey = Convert.FromBase64String((string)jsonResponseObjectUser.PublicKey);
@@ -124,7 +128,7 @@ namespace NeaClient
                                 }
                                 var content = new
                                 {
-                                    token = tokens[activeToken][1],
+                                    token = activeUser.Token,
                                     keyCypherText = keyCypherText,
                                     guildID = guild.ID,
                                     userID = (string)request.UserID,
@@ -144,7 +148,7 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/listGuilds?token=" + tokens[activeToken][1]);
+                response = await client.GetAsync("/api/guild/listGuilds?token=" + activeUser.Token);
                 successfullConnection = true;
             }
             catch
@@ -216,8 +220,9 @@ namespace NeaClient
             }
             return successfullConnection;
         }
-        public void addLogin(bool removeInvalid = false)
+        public async void addLogin(bool removeInvalid = false)
         {
+            List<string[]> tokens;
             User user;
             string server;
             using (var frmLogin = new frmLogin()) // Opens the login form and saves its responses.
@@ -237,26 +242,97 @@ namespace NeaClient
             }
             if (user != null && user.Token != null) // If the login form has responded with info, write it to the file.
             {
-                tokens.Add(new string[] { server, user.Token , Convert.ToBase64String(user.PrivateKey) });
-                File.AppendAllText(tokenFile, tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] +  "," + tokens[tokens.Count - 1][2] + "\r\n");
+                tokens.Add(new string[] { server, user.Token, Convert.ToBase64String(user.PrivateKey) });
+
                 if (removeInvalid == true)
                 {
-                    removeToken(activeToken);
-                    client = new() { BaseAddress = new Uri("http://" + tokens[activeToken][0]) }; // If the token was previously incorrect, the client needs to be set 
+                    File.WriteAllText(tokenFile, ""); // Clear the file.
+                    for (int i = 0; i < tokens.Count; i++) // Re-write the token list to the file.
+                    {
+                        if (tokens[i][1] != activeUser.Token)
+                        {
+                            File.AppendAllText(tokenFile, tokens[i][0] + "," + tokens[i][1] + "," + tokens[i][2] + "\r\n");
+                            tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
+                        }
+                    }
+                    client = new() { BaseAddress = new Uri("http://" + server) }; // If the token was previously incorrect, the client needs to be set 
                 }
-                activeToken = tokens.Count - 1;
+                else
+                {
+                    File.AppendAllText(tokenFile, tokens[tokens.Count - 1][0] + "," + tokens[tokens.Count - 1][1] + "," + tokens[tokens.Count - 1][2] + "\r\n");
+
+                }
+                activeUser = new User();
+                activeUser.ServerURL = server;
+                activeUser.Token = user.Token;
             }
             tvGuilds.Nodes.Clear();
         }
-        public void removeToken(int tokenIndex)
+        public async Task<User> fetchUserInfo(string userID = null, string token = null)
         {
-            tokens.RemoveAt(tokenIndex); // Remove the token from the list.
-            File.WriteAllText(tokenFile, ""); // Clear the file.
-            for (int i = 0; i < tokens.Count; i++) // Re-write the token list to the file.
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            User user = new User();
+            if (token == null)
             {
-                File.AppendAllText(tokenFile, tokens[i][0] + "," + tokens[i][1] + "," + tokens[i][2] + "\r\n");
+                token = activeUser.Token;
             }
+            else if (userID == null)
+            {
+                try
+                {
+                    response = await client.GetAsync("/api/account/userID?token=" + token);
+                    successfullConnection = true;
+                }
+                catch
+                {
+                    successfullConnection = false;
+                    menuStrip1.Items["offlineIndicator"].Visible = true;
+                }
+                if (successfullConnection)
+                {
+                    menuStrip1.Items["offlineIndicator"].Visible = false;
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                    if (response.IsSuccessStatusCode)
+                    {
+                        userID = jsonResponseObject.userID;
+                    }
+                    else
+                    {
+                        showError(jsonResponse);
+                        return user;
+                    }
+                }
+            }
+            try
+            {
+                response = await client.GetAsync("/api/user/getInfo?token=" + token + "&userID=" + userID);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+                menuStrip1.Items["offlineIndicator"].Visible = true;
+            }
+            if (successfullConnection)
+            {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                if (response.IsSuccessStatusCode)
+                {
+                    user = JsonConvert.DeserializeObject<User>(jsonResponse);
+                    user.Token = token;
+                    user.ReadPrivateKey(tokenFile);
+                }
+                else
+                {
+                    showError(jsonResponse);
+                }
+            }
+            return user;
         }
+
         private async void btnSend_Click(object sender, EventArgs e)
         {
             await modifyMsgListSS.WaitAsync();
@@ -308,7 +384,7 @@ namespace NeaClient
             {
                 var content = new 
                 { 
-                    token = tokens[activeToken][1],
+                    token = activeUser.Token,
                     channelID = message.ChannelID, 
                     messageText = message.CypherText, 
                     IV = Convert.ToBase64String(message.IV)
@@ -345,7 +421,7 @@ namespace NeaClient
                 if (!menuStrip1.Items["offlineIndicator"].Visible)
                 {
                     menuStrip1.Items["offlineIndicator"].Visible = true;
-                    MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
                 }
             }
         }
@@ -408,11 +484,11 @@ namespace NeaClient
             {
                 if (afterMessageID == null)
                 {
-                    response = await client.GetAsync("/api/content/getMessages?token=" + tokens[activeToken][1] + "&channelID=" + channelID);
+                    response = await client.GetAsync("/api/content/getMessages?token=" + activeUser.Token + "&channelID=" + channelID);
                 }
                 else
                 {
-                    response = await client.GetAsync("/api/content/getMessages?token=" + tokens[activeToken][1] + "&channelID=" + channelID + "&afterMessageID=" + afterMessageID);
+                    response = await client.GetAsync("/api/content/getMessages?token=" + activeUser.Token + "&channelID=" + channelID + "&afterMessageID=" + afterMessageID);
                 }
                 successfullConnection = true;
             }
@@ -461,7 +537,7 @@ namespace NeaClient
                 if (!menuStrip1.Items["offlineIndicator"].Visible) // If the offline indicator is not visible
                 {
                     menuStrip1.Items["offlineIndicator"].Visible = true;
-                    MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
                 }
             }
             return recievedMessages;
@@ -495,7 +571,7 @@ namespace NeaClient
 
         private void createGuildToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            Form frmGuildSettings = new frmGuildSettings(tokens[activeToken]);
+            Form frmGuildSettings = new frmGuildSettings(activeUser);
             frmGuildSettings.ShowDialog();
             fillGuildSidebar();
         }
@@ -536,7 +612,7 @@ namespace NeaClient
             {
                 var content = new
                 {
-                    token = tokens[activeToken][1],
+                    token = activeUser.Token,
                     code =inviteCode
                 };
                 response = await client.PostAsJsonAsync("/api/guild/join", content);
@@ -571,7 +647,7 @@ namespace NeaClient
             {
                 if (!menuStrip1.Items["offlineIndicator"].Visible) 
                 {
-                    MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
                 }
             }
         }
@@ -590,7 +666,7 @@ namespace NeaClient
             {
                 var content = new
                 {
-                    token = tokens[activeToken][1],
+                    token = activeUser.Token,
                     guildID = guilds[activeGuildIndex].ID
                 };
                 response = await client.PostAsJsonAsync("/api/guild/createInvite", content);
@@ -615,7 +691,7 @@ namespace NeaClient
  
                 if (!menuStrip1.Items["offlineIndicator"].Visible)
                 {
-                    MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
                 }
             }
         }
@@ -624,15 +700,15 @@ namespace NeaClient
         {
             if (activeGuildIndex > 0)
             {
-                Form invites = new frmInvites(guilds[activeGuildIndex], tokens, activeToken);
+                Form invites = new frmInvites(guilds[activeGuildIndex], activeUser);
                 invites.Show();
             }
         }
         private void listUsersToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (activeGuildIndex > 0)
+            if (activeGuildIndex > -1)
             {
-                Form guildUsers = new frmGuildUsers(guilds[activeGuildIndex], tokens, activeToken);
+                Form guildUsers = new frmGuildUsers(guilds[activeGuildIndex], activeUser);
                 guildUsers.Show();
             }
         }
@@ -645,7 +721,7 @@ namespace NeaClient
             {
                 var content = new
                 {
-                    token = tokens[activeToken][1],
+                    token = activeUser.Token,
                     guildID = guildID
                 };
                 response = await client.PostAsJsonAsync("/api/guild/key/request", content);
@@ -664,12 +740,10 @@ namespace NeaClient
                 {
                     byte[] guildKey;
                     keyCypherText = Convert.FromBase64String((string)jsonResponseObject.key);
-                    User user = new();
-                    user.ReadPrivateKey(tokenFile, activeToken);
                     // Decrypt guild key
                     using (RSA rsa = RSA.Create())
                     {
-                        rsa.ImportRSAPrivateKey(user.PrivateKey, out _);
+                        rsa.ImportRSAPrivateKey(activeUser.PrivateKey, out _);
                         guildKey = rsa.Decrypt(keyCypherText, RSAEncryptionPadding.OaepSHA256);
                     }
                     // Check if key is valid
@@ -689,7 +763,7 @@ namespace NeaClient
             {
                 if (!menuStrip1.Items["offlineIndicator"].Visible) 
                 {
-                    MessageBox.Show("Could not connect to: " + tokens[activeToken][0], "Connection Error.");
+                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
                 }
             }
             return false;

@@ -19,13 +19,14 @@ namespace NeaClient
         int activeToken;
         Guild guild;
         HttpClient client;
-        public frmInvites(Guild guild, List<string[]> tokens, int activeToken)
+        User activeUser;
+        public frmInvites(Guild guild, User activeUser)
         {
             InitializeComponent();
             this.tokens = tokens;
-            this.activeToken = activeToken;
+            this.activeUser = activeUser;
             this.guild = guild;
-            client = new() { BaseAddress = new Uri("http://" + tokens[activeToken][0]) };
+            client = new() { BaseAddress = new Uri("http://" + activeUser.ServerURL) };
         }
         private async void frmInvites_Load(object sender, EventArgs e)
         {
@@ -45,7 +46,7 @@ namespace NeaClient
             {
                 var content = new
                 {
-                    token = tokens[activeToken][1],
+                    token = activeUser.Token,
                     guildID = guild.ID
                 };
                 response = await client.PostAsJsonAsync("/api/guild/invite/create", content);
@@ -76,7 +77,7 @@ namespace NeaClient
             bool successfullConnection;
             try
             {
-                response = await client.GetAsync("/api/guild/invite/list?token=" + tokens[activeToken][1] + "&guildID=" + guild.ID);
+                response = await client.GetAsync("/api/guild/invite/list?token=" + activeUser.Token + "&guildID=" + guild.ID);
                 successfullConnection = true;
             }
             catch

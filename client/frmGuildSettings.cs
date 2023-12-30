@@ -15,13 +15,14 @@ namespace NeaClient
 {
     public partial class frmGuildSettings : Form
     {
-        string[] serverDetails;
+        User activeUser;
         string guildID;
         Utility utility = new Utility();
-        public frmGuildSettings(string[] serverDetails, string guildID = null)
+
+        public frmGuildSettings(User activeUser, string guildID = null)
         {
             InitializeComponent();
-            this.serverDetails = serverDetails;
+            this.activeUser = activeUser;
             this.guildID = guildID;
         }
         private void frmGuildSettings_Load(object sender, EventArgs e)
@@ -42,19 +43,19 @@ namespace NeaClient
             byte[] key = RandomNumberGenerator.GetBytes(16);
             string keyString = Convert.ToBase64String(key);
             string keyDigest = Convert.ToBase64String(SHA256.HashData(key));
-            HttpClient client = new() { BaseAddress = new Uri("http://" + serverDetails[0]) };
+            HttpClient client = new() { BaseAddress = new Uri("http://" + activeUser.ServerURL) };
             try
             {
                 var content = new
                 {
-                    Token = serverDetails[1],
+                    Token = activeUser.Token,
                     GuildName = txtGuildName.Text,
                     guildKeyDigest = keyDigest,
                 };
                 response = await client.PostAsJsonAsync("/api/guild/create", content);            }
             catch
             {
-                MessageBox.Show("Could not connect to " + serverDetails[0], "Connection Error.");
+                MessageBox.Show("Could not connect to " + activeUser.ServerURL, "Connection Error.");
                 return;
             }
             var jsonResponse = await response.Content.ReadAsStringAsync();
@@ -70,7 +71,7 @@ namespace NeaClient
                     {
                         var content = new
                         {
-                            token = serverDetails[1],
+                            token = activeUser.Token,
                             guildID = guildID,
                             guildDesc = txtGuildDescription.Text
                         };
@@ -79,7 +80,7 @@ namespace NeaClient
                                 
                     catch
                     {
-                        MessageBox.Show("Could not connect to " + serverDetails[0], "Connection Error.");
+                        MessageBox.Show("Could not connect to " + activeUser.ServerURL, "Connection Error.");
                         return;
                     }
                 }
@@ -102,12 +103,12 @@ namespace NeaClient
             HttpResponseMessage response;
             try
             {
-                HttpClient request = new() { BaseAddress = new Uri("http://" + serverDetails[0]) };
-                response = await request.GetAsync("/api/guild/setDetails?token=" + serverDetails[1] + "&"); // TODO: finish
+                HttpClient request = new() { BaseAddress = new Uri("http://" + activeUser.ServerURL) };
+                response = await request.GetAsync("/api/guild/setDetails?token=" + activeUser.Token + "&"); // TODO: finish
             }
             catch
             {
-                MessageBox.Show("Could not connect to " + serverDetails[0], "Connection Error.");
+                MessageBox.Show("Could not connect to " + activeUser.ServerURL, "Connection Error.");
                 return;
             }
         }
