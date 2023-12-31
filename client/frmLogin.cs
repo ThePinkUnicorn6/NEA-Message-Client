@@ -61,6 +61,10 @@ namespace NeaClient
 
         private async void btnCreateAccount_Click(object sender, EventArgs e)
         {
+            if (!(txtPassword.Text.Count() > 0 && txtUsername.Text.Count() > 0)) // If the fields are blank
+            {
+                return;
+            }
             string passHash = hash(txtPassword.Text);
             server = txtServerAddress.Text.ToLower().Take(7).ToArray() == "http://".ToArray() ? txtServerAddress.Text.Remove(0, 7) : txtServerAddress.Text; // Remove http:// if it is in the url.
             HttpResponseMessage response;

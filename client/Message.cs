@@ -11,17 +11,18 @@ namespace NeaClient
     public class Message
     {
         public string ID { get; set; }
+        public int Type { get; set; }
         public string ChannelID { get; set; }
         public string UserID { get; set; }
         public string UserName { get; set; }
-        public string PlainText { get; set; }
+        public string Content { get; set; }
         public string CypherText { get; set; }
         public float Time { get; set; }
         public byte[] IV { get; set; }
 
         public override string ToString() {
             
-            return UserName + " (" + timeString() + ")\r\n" + PlainText;
+            return UserName + " (" + timeString() + ")\r\n" + Content;
         }
         private string timeString()
         {
@@ -43,7 +44,7 @@ namespace NeaClient
             {
                 aes.Key = key;
                 IV = aes.IV;
-                byte[] messageByteArray = Encoding.UTF8.GetBytes(PlainText); // Convert the message to a byte array
+                byte[] messageByteArray = Encoding.UTF8.GetBytes(Content); // Convert the message to a byte array
                 MemoryStream stream = new MemoryStream();
                 {
                     using (CryptoStream cryptoStream = new(stream, aes.CreateEncryptor(key, IV), CryptoStreamMode.Write)) // Start a crypto stream to encrypt the message
@@ -65,7 +66,7 @@ namespace NeaClient
                 {
                     using(StreamReader decryptor = new StreamReader(cryptoStream))
                     {
-                        PlainText = await decryptor.ReadToEndAsync();
+                        Content = await decryptor.ReadToEndAsync();
                     }
                 }
             }

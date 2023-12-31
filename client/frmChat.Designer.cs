@@ -53,6 +53,7 @@
             this.txtKeyWarning = new System.Windows.Forms.TextBox();
             this.tmrFulfillGuildRequests = new System.Windows.Forms.Timer(this.components);
             this.tmrMessageCheck = new System.Windows.Forms.Timer(this.components);
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.pnlGuilds.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlMessages.SuspendLayout();
@@ -138,6 +139,7 @@
             this.btnEditor.TabIndex = 5;
             this.btnEditor.Text = "+";
             this.btnEditor.UseVisualStyleBackColor = true;
+            this.btnEditor.Click += new System.EventHandler(this.btnEditor_Click);
             // 
             // menuStrip1
             // 
@@ -291,6 +293,10 @@
             this.tmrMessageCheck.Interval = 1000;
             this.tmrMessageCheck.Tick += new System.EventHandler(this.tmrMessageCheck_Tick);
             // 
+            // openFileDialog1
+            // 
+            this.openFileDialog1.FileName = "openFileDialog1";
+            // 
             // frmChat
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -347,5 +353,6 @@
         private System.Windows.Forms.Timer tmrMessageCheck;
         private ToolStripMenuItem toolStripMenuItem1;
         private ToolStripMenuItem offlineIndicator;
+        private OpenFileDialog openFileDialog1;
     }
 }
