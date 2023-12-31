@@ -39,7 +39,7 @@ namespace NeaClient
         }
         private async void btnTogglePerms_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i <= tblUsers.RowCount; i++)
+            for (int i = 0; i < tblUsers.RowCount; i++)
             {
                 CheckBox checkBox = (CheckBox)tblUsers.GetControlFromPosition(0, i);
                 if (checkBox.CheckState == CheckState.Checked)
@@ -142,7 +142,7 @@ namespace NeaClient
         }
         private async void btnKick_Click(object sender, EventArgs e)
         {
-            for (int i = 0; i < tblUsers.Controls.Count; i++)
+            for (int i = 0; i < tblUsers.RowCount; i++)
             {
                 CheckBox checkBox = (CheckBox)tblUsers.GetControlFromPosition(0, i);
                 if (checkBox.CheckState == CheckState.Checked)

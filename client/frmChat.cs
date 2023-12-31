@@ -68,7 +68,7 @@ namespace NeaClient
                 if (!fillGuildSidebarSuccess)
                 {
                     menuStrip1.Items["offlineIndicator"].Visible = true;
-                    DialogResult retry = MessageBox.Show("Could not connect to " + activeUser.Token + ". Would you like to try again?", "Connection Error", MessageBoxButtons.YesNo);
+                    DialogResult retry = MessageBox.Show("Could not connect to " + activeUser.ServerURL + ". Would you like to try again?", "Connection Error", MessageBoxButtons.YesNo);
                     if (retry != DialogResult.Yes)
                     {
                         Close();
@@ -338,22 +338,23 @@ namespace NeaClient
             await modifyMsgListSS.WaitAsync();
             try
             {
-                await sendMessage();
+                await sendMessage(txtMessageText.Text, 1);
             }
             finally
             {
                 modifyMsgListSS.Release();
             }
         }
-        private async Task sendMessage()
+        private async Task sendMessage(string messageContent, int type)
         {
             await displayNewMessages();
             Message message = new Message
             {
-                PlainText = txtMessageText.Text,
+                Type = type,
+                Content = messageContent,
                 ChannelID = activeChannelID,
             };
-            if (string.IsNullOrWhiteSpace(message.PlainText)) { return; } // Do nothing if text box is empty.
+            if (string.IsNullOrWhiteSpace(message.Content)) { return; } // Do nothing if text box is empty.
             if (activeChannelID == null) { return; }
             if (guilds[activeGuildIndex].Key == null) // If the key is not held by the guild allready, read it from the file.
             {
@@ -385,8 +386,9 @@ namespace NeaClient
                 var content = new 
                 { 
                     token = activeUser.Token,
+                    type = type,
                     channelID = message.ChannelID, 
-                    messageText = message.CypherText, 
+                    content = message.CypherText, 
                     IV = Convert.ToBase64String(message.IV)
                 };
                 response = await client.PostAsJsonAsync("/api/content/sendMessage", content);
@@ -409,23 +411,32 @@ namespace NeaClient
                     message.Time = jsonResponseObject.Time;
                     messages.Add(message);
                     displayMessage(message, messages.Count);
-                    txtMessageText.Text = "";
+                    if (type == 1) txtMessageText.Text = "";
                 }
                 else
                 {
                     showError(jsonResponseObject);
                 }
             }
-            else
+            else if (!menuStrip1.Items["offlineIndicator"].Visible)
             {
-                if (!menuStrip1.Items["offlineIndicator"].Visible)
-                {
-                    menuStrip1.Items["offlineIndicator"].Visible = true;
-                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
-                }
+                menuStrip1.Items["offlineIndicator"].Visible = true;
+                MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
             }
         }
-
+        public async Task sendImageMessage(string channelID, string filePath)
+        {
+            byte[] imageBytes = File.ReadAllBytes(filePath);
+            await modifyMsgListSS.WaitAsync();
+            try
+            {
+                await sendMessage(Convert.ToBase64String(imageBytes), 2);
+            }
+            finally
+            {
+                modifyMsgListSS.Release();
+            }
+        }
         private async Task displayChannel(string channelID)
         {
             activeChannelID = channelID;
@@ -460,10 +471,19 @@ namespace NeaClient
             tblMessages.ResumeLayout();
             UseWaitCursor = false;
         }
-        private void displayMessage(Message message, int row)
+        private async void displayMessage(Message message, int row)
+        {
+            byte[] profilePic = await fetchProfilePic(message.UserID);
+            if (profilePic.Count() > 0) displayImage(profilePic, 0, row);
+            if (message.Type == 1) displayText(message.ToString(), row);
+            else if (message.Type == 2) displayImage(message.Content, 1, row);
+
+            // TODO: work out how to scroll the message into view
+        }
+        private void displayText(string messageText, int row)
         {
             RichTextBox rtbMessageText = new RichTextBox();
-            rtbMessageText.Text = message.ToString();
+            rtbMessageText.Text = messageText;
             rtbMessageText.ReadOnly = true;
             Size size = TextRenderer.MeasureText(rtbMessageText.Text, rtbMessageText.Font);
             rtbMessageText.Height = size.Height;
@@ -472,8 +492,41 @@ namespace NeaClient
             rtbMessageText.BackColor = System.Drawing.Color.DarkOliveGreen;
             rtbMessageText.ForeColor = System.Drawing.Color.White;
             tblMessages.Controls.Add(rtbMessageText, 1, row);
+        }
+        private async Task<byte[]> fetchProfilePic(string userID)
+        {
+            const string picCacheDir = "./ProfilePicCache/";
+            byte[] profilePic = Array.Empty<byte>();
+            // Check disk for picture, if not found fetch it from server
+            if (!Directory.Exists(picCacheDir)) Directory.CreateDirectory(picCacheDir);
+            // If cached pfp is not older than an hour, read it from disk else fetch it again in case it has changed
+            if (File.Exists(picCacheDir + userID) && (File.GetLastWriteTime(picCacheDir + userID) - DateTime.Now).TotalHours < 1)
+            {
+                profilePic = File.ReadAllBytes(picCacheDir + userID);
+            }
+            else
+            {
+                // Fetch pfp from server and save it to cache
 
-            // TODO: work out how to scroll the message into view
+                // If null return null
+            }
+            return profilePic;
+        }
+        private void displayImage(string imageBase64, int collumn, int row)
+        {
+            byte[] imageBytes = Convert.FromBase64String(imageBase64);
+            displayImage(imageBytes, collumn, row);
+        }
+        private void displayImage(byte[] imageBytes, int collumn, int row)
+        {
+            PictureBox image = new();
+            using (MemoryStream ms = new MemoryStream(imageBytes))
+            {
+                image.Image = (Image.FromStream(ms));
+            }
+            image.SizeMode = PictureBoxSizeMode.Zoom;
+            tblMessages.Controls.Add(image, collumn, row);
+            // display image
         }
         private async Task<List<Message>> fetchMessages(string channelID, string afterMessageID = null)
         {
@@ -525,7 +578,8 @@ namespace NeaClient
                         UserName = jsonResponseObject[i].UserName,
                         ChannelID = jsonResponseObject[i].ChannelID,
                         UserID = jsonResponseObject[i].UserID,
-                        CypherText = jsonResponseObject[i].Text,
+                        Type = jsonResponseObject[i].Type,
+                        CypherText = jsonResponseObject[i].Content,
                         Time = jsonResponseObject[i].Time,
                         IV = IV
                     };
@@ -555,7 +609,7 @@ namespace NeaClient
                 await modifyMsgListSS.WaitAsync();
                 try
                 {
-                    await sendMessage();
+                    await sendMessage(txtMessageText.Text, 1);
                 }
                 finally 
                 {
@@ -804,6 +858,14 @@ namespace NeaClient
                 {
                     modifyMsgListSS.Release();
                 }
+            }
+        }
+
+        private async void btnEditor_Click(object sender, EventArgs e)
+        {
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                sendImageMessage(activeChannelID, openFileDialog1.FileName);
             }
         }
     }
