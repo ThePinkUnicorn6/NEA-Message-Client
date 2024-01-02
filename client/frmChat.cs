@@ -520,13 +520,16 @@ namespace NeaClient
         private void displayImage(byte[] imageBytes, int collumn, int row)
         {
             PictureBox image = new();
-            using (MemoryStream ms = new MemoryStream(imageBytes))
+            try
             {
-                image.Image = (Image.FromStream(ms));
+                using (MemoryStream ms = new MemoryStream(imageBytes))
+                {
+                    image.Image = (Image.FromStream(ms));
+                }
+                image.SizeMode = PictureBoxSizeMode.Zoom;
+                tblMessages.Controls.Add(image, collumn, row);
             }
-            image.SizeMode = PictureBoxSizeMode.Zoom;
-            tblMessages.Controls.Add(image, collumn, row);
-            // display image
+            catch { };
         }
         private async Task<List<Message>> fetchMessages(string channelID, string afterMessageID = null)
         {
@@ -863,10 +866,32 @@ namespace NeaClient
 
         private async void btnEditor_Click(object sender, EventArgs e)
         {
-            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            openFileDialog1.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.tif";
+            if (activeChannelID != null && openFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 sendImageMessage(activeChannelID, openFileDialog1.FileName);
             }
+        }
+
+        private void deleteGuildToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void editGuildStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (activeGuildIndex != -1)
+            {
+                Form frmGuildSettings = new frmGuildSettings(activeUser, guilds[activeGuildIndex].ID);
+                frmGuildSettings.ShowDialog();
+                fillGuildSidebar();
+            }
+
+        }
+
+        private void viewDescriptionToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(guilds[activeGuildIndex].Description);
         }
     }
 }
