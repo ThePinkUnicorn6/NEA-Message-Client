@@ -52,11 +52,6 @@
             this.deleteGuildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.viewDescriptionToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.offlineIndicator = new System.Windows.Forms.ToolStripMenuItem();
-            this.pnlMessages = new System.Windows.Forms.Panel();
-            this.txtKeyWarning = new System.Windows.Forms.TextBox();
-            this.tmrFulfillGuildRequests = new System.Windows.Forms.Timer(this.components);
-            this.tmrMessageCheck = new System.Windows.Forms.Timer(this.components);
-            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.channelSettings = new System.Windows.Forms.ToolStripMenuItem();
             this.newChannelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.renameChannelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -65,9 +60,15 @@
             this.ownerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.adminToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.anyoneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.pnlMessages = new System.Windows.Forms.Panel();
+            this.txtKeyWarning = new System.Windows.Forms.TextBox();
+            this.tmrFulfillGuildRequests = new System.Windows.Forms.Timer(this.components);
+            this.tmrMessageCheck = new System.Windows.Forms.Timer(this.components);
+            this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
             this.btnViewOlderMessages = new System.Windows.Forms.Button();
             this.btnViewNewerMessages = new System.Windows.Forms.Button();
             this.btnJumpToPresent = new System.Windows.Forms.Button();
+            this.uploadProfilePicToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlGuilds.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlMessages.SuspendLayout();
@@ -168,7 +169,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStrip1.Size = new System.Drawing.Size(1074, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1074, 25);
             this.menuStrip1.TabIndex = 6;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -177,22 +178,23 @@
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.accountOptionsToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(61, 21);
             this.fileToolStripMenuItem.Text = "Settings";
             this.fileToolStripMenuItem.Click += new System.EventHandler(this.fileToolStripMenuItem_Click);
             // 
             // accountOptionsToolStripMenuItem
             // 
             this.accountOptionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addAccountToolStripMenuItem});
+            this.addAccountToolStripMenuItem,
+            this.uploadProfilePicToolStripMenuItem});
             this.accountOptionsToolStripMenuItem.Name = "accountOptionsToolStripMenuItem";
-            this.accountOptionsToolStripMenuItem.Size = new System.Drawing.Size(164, 22);
+            this.accountOptionsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.accountOptionsToolStripMenuItem.Text = "Account Options";
             // 
             // addAccountToolStripMenuItem
             // 
             this.addAccountToolStripMenuItem.Name = "addAccountToolStripMenuItem";
-            this.addAccountToolStripMenuItem.Size = new System.Drawing.Size(144, 22);
+            this.addAccountToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.addAccountToolStripMenuItem.Text = "Add Account";
             this.addAccountToolStripMenuItem.Click += new System.EventHandler(this.addAccountToolStripMenuItem_Click);
             // 
@@ -202,7 +204,7 @@
             this.createGuildToolStripMenuItem,
             this.joinGuildFromCodeToolStripMenuItem});
             this.testToolStripMenuItem.Name = "testToolStripMenuItem";
-            this.testToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
+            this.testToolStripMenuItem.Size = new System.Drawing.Size(52, 21);
             this.testToolStripMenuItem.Text = "Guilds";
             // 
             // createGuildToolStripMenuItem
@@ -224,7 +226,7 @@
             this.privateChatsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.createDMToolStripMenuItem});
             this.privateChatsToolStripMenuItem.Name = "privateChatsToolStripMenuItem";
-            this.privateChatsToolStripMenuItem.Size = new System.Drawing.Size(88, 20);
+            this.privateChatsToolStripMenuItem.Size = new System.Drawing.Size(88, 21);
             this.privateChatsToolStripMenuItem.Text = "Private Chats";
             // 
             // createDMToolStripMenuItem
@@ -242,7 +244,7 @@
             this.deleteGuildToolStripMenuItem,
             this.viewDescriptionToolStripMenuItem});
             this.guildSettingsToolStripMenuItem.Name = "guildSettingsToolStripMenuItem";
-            this.guildSettingsToolStripMenuItem.Size = new System.Drawing.Size(92, 20);
+            this.guildSettingsToolStripMenuItem.Size = new System.Drawing.Size(92, 21);
             this.guildSettingsToolStripMenuItem.Text = "Guild Settings";
             // 
             // listUsersToolStripMenuItem
@@ -290,6 +292,64 @@
             this.offlineIndicator.Text = "OFFLINE";
             this.offlineIndicator.Visible = false;
             // 
+            // channelSettings
+            // 
+            this.channelSettings.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.newChannelToolStripMenuItem,
+            this.renameChannelToolStripMenuItem,
+            this.deleteChannelToolStripMenuItem,
+            this.changeChannelPermissions});
+            this.channelSettings.Name = "channelSettings";
+            this.channelSettings.Size = new System.Drawing.Size(108, 21);
+            this.channelSettings.Text = "Channel Settings";
+            // 
+            // newChannelToolStripMenuItem
+            // 
+            this.newChannelToolStripMenuItem.Name = "newChannelToolStripMenuItem";
+            this.newChannelToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
+            this.newChannelToolStripMenuItem.Text = "New Channel";
+            this.newChannelToolStripMenuItem.Click += new System.EventHandler(this.newChannelToolStripMenuItem_Click);
+            // 
+            // renameChannelToolStripMenuItem
+            // 
+            this.renameChannelToolStripMenuItem.Name = "renameChannelToolStripMenuItem";
+            this.renameChannelToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
+            this.renameChannelToolStripMenuItem.Text = "Rename Channel";
+            // 
+            // deleteChannelToolStripMenuItem
+            // 
+            this.deleteChannelToolStripMenuItem.Name = "deleteChannelToolStripMenuItem";
+            this.deleteChannelToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
+            this.deleteChannelToolStripMenuItem.Text = "Delete Channel";
+            // 
+            // changeChannelPermissions
+            // 
+            this.changeChannelPermissions.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ownerToolStripMenuItem,
+            this.adminToolStripMenuItem,
+            this.anyoneToolStripMenuItem});
+            this.changeChannelPermissions.Name = "changeChannelPermissions";
+            this.changeChannelPermissions.Size = new System.Drawing.Size(228, 22);
+            this.changeChannelPermissions.Text = "Change Channel Permissions";
+            // 
+            // ownerToolStripMenuItem
+            // 
+            this.ownerToolStripMenuItem.Name = "ownerToolStripMenuItem";
+            this.ownerToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
+            this.ownerToolStripMenuItem.Text = "Owner";
+            // 
+            // adminToolStripMenuItem
+            // 
+            this.adminToolStripMenuItem.Name = "adminToolStripMenuItem";
+            this.adminToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
+            this.adminToolStripMenuItem.Text = "Admin";
+            // 
+            // anyoneToolStripMenuItem
+            // 
+            this.anyoneToolStripMenuItem.Name = "anyoneToolStripMenuItem";
+            this.anyoneToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
+            this.anyoneToolStripMenuItem.Text = "Anyone";
+            // 
             // pnlMessages
             // 
             this.pnlMessages.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -336,66 +396,8 @@
             // 
             this.openFileDialog1.FileName = "openFileDialog1";
             // 
-            // channelSettings
-            // 
-            this.channelSettings.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.newChannelToolStripMenuItem,
-            this.renameChannelToolStripMenuItem,
-            this.deleteChannelToolStripMenuItem,
-            this.changeChannelPermissions});
-            this.channelSettings.Name = "channelSettings";
-            this.channelSettings.Size = new System.Drawing.Size(108, 20);
-            this.channelSettings.Text = "Channel Settings";
-            // 
-            // newChannelToolStripMenuItem
-            // 
-            this.newChannelToolStripMenuItem.Name = "newChannelToolStripMenuItem";
-            this.newChannelToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
-            this.newChannelToolStripMenuItem.Text = "New Channel";
-            // 
-            // renameChannelToolStripMenuItem
-            // 
-            this.renameChannelToolStripMenuItem.Name = "renameChannelToolStripMenuItem";
-            this.renameChannelToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
-            this.renameChannelToolStripMenuItem.Text = "Rename Channel";
-            // 
-            // deleteChannelToolStripMenuItem
-            // 
-            this.deleteChannelToolStripMenuItem.Name = "deleteChannelToolStripMenuItem";
-            this.deleteChannelToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
-            this.deleteChannelToolStripMenuItem.Text = "Delete Channel";
-            // 
-            // changeChannelPermissions
-            // 
-            this.changeChannelPermissions.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.ownerToolStripMenuItem,
-            this.adminToolStripMenuItem,
-            this.anyoneToolStripMenuItem});
-            this.changeChannelPermissions.Name = "changeChannelPermissions";
-            this.changeChannelPermissions.Size = new System.Drawing.Size(228, 22);
-            this.changeChannelPermissions.Text = "Change Channel Permissions";
-            // 
-            // ownerToolStripMenuItem
-            // 
-            this.ownerToolStripMenuItem.Name = "ownerToolStripMenuItem";
-            this.ownerToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.ownerToolStripMenuItem.Text = "Owner";
-            // 
-            // adminToolStripMenuItem
-            // 
-            this.adminToolStripMenuItem.Name = "adminToolStripMenuItem";
-            this.adminToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.adminToolStripMenuItem.Text = "Admin";
-            // 
-            // anyoneToolStripMenuItem
-            // 
-            this.anyoneToolStripMenuItem.Name = "anyoneToolStripMenuItem";
-            this.anyoneToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.anyoneToolStripMenuItem.Text = "Anyone";
-            // 
             // btnViewOlderMessages
             // 
-            this.btnViewOlderMessages.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnViewOlderMessages.Location = new System.Drawing.Point(269, 30);
             this.btnViewOlderMessages.Name = "btnViewOlderMessages";
             this.btnViewOlderMessages.Size = new System.Drawing.Size(150, 23);
@@ -405,23 +407,30 @@
             // 
             // btnViewNewerMessages
             // 
-            this.btnViewNewerMessages.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnViewNewerMessages.Location = new System.Drawing.Point(786, 30);
+            this.btnViewNewerMessages.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnViewNewerMessages.Location = new System.Drawing.Point(766, 30);
             this.btnViewNewerMessages.Name = "btnViewNewerMessages";
-            this.btnViewNewerMessages.Size = new System.Drawing.Size(150, 23);
+            this.btnViewNewerMessages.Size = new System.Drawing.Size(158, 23);
             this.btnViewNewerMessages.TabIndex = 8;
             this.btnViewNewerMessages.Text = "View Newer Messages ->";
             this.btnViewNewerMessages.UseVisualStyleBackColor = true;
             // 
             // btnJumpToPresent
             // 
-            this.btnJumpToPresent.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnJumpToPresent.Location = new System.Drawing.Point(942, 30);
+            this.btnJumpToPresent.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnJumpToPresent.Location = new System.Drawing.Point(930, 30);
             this.btnJumpToPresent.Name = "btnJumpToPresent";
-            this.btnJumpToPresent.Size = new System.Drawing.Size(120, 23);
+            this.btnJumpToPresent.Size = new System.Drawing.Size(132, 23);
             this.btnJumpToPresent.TabIndex = 8;
             this.btnJumpToPresent.Text = "Jump To Present >>";
             this.btnJumpToPresent.UseVisualStyleBackColor = true;
+            // 
+            // uploadProfilePicToolStripMenuItem
+            // 
+            this.uploadProfilePicToolStripMenuItem.Name = "uploadProfilePicToolStripMenuItem";
+            this.uploadProfilePicToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.uploadProfilePicToolStripMenuItem.Text = "Upload ProfilePic";
+            this.uploadProfilePicToolStripMenuItem.Click += new System.EventHandler(this.uploadProfilePicToolStripMenuItem_Click);
             // 
             // frmChat
             // 
@@ -438,7 +447,7 @@
             this.Controls.Add(this.pnlGuilds);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.MinimumSize = new System.Drawing.Size(895, 483);
+            this.MinimumSize = new System.Drawing.Size(890, 466);
             this.Name = "frmChat";
             this.Text = "Home";
             this.Load += new System.EventHandler(this.frmChat_Load);
@@ -497,5 +506,6 @@
         private Button btnViewOlderMessages;
         private Button btnViewNewerMessages;
         private Button btnJumpToPresent;
+        private ToolStripMenuItem uploadProfilePicToolStripMenuItem;
     }
 }
