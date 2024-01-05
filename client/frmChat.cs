@@ -52,7 +52,7 @@ namespace NeaClient
             {
                 addLogin();
             }
-            if (tokens.Count == 0) // If the login page has not added any tokens, the user must have closed it, so close the program.
+            if (string.IsNullOrEmpty(activeUser.Token)) // If the login page has not added any tokens, the user must have closed it, so close the program.
             {
                 this.Close();
                 return; // Return, otherwise it starts running the next code and errors.
@@ -76,7 +76,10 @@ namespace NeaClient
                 }
             } while (fillGuildSidebarSuccess == false);
             activeUser = await fetchUserInfo(token: activeUser.Token);
-            activeUser.ServerURL = tokens[0][0];
+            if (string.IsNullOrEmpty(activeUser.ServerURL))
+            {
+                activeUser.ServerURL = tokens[0][0];
+            }
             this.Text = "Home - " + activeUser.Name;
             fulfillKeyRequests();
         }
@@ -496,19 +499,25 @@ namespace NeaClient
         private async Task<byte[]> fetchProfilePic(string userID)
         {
             const string picCacheDir = "./ProfilePicCache/";
+            string picCacheFile = picCacheDir + userID;
             byte[] profilePic = Array.Empty<byte>();
             // Check disk for picture, if not found fetch it from server
             if (!Directory.Exists(picCacheDir)) Directory.CreateDirectory(picCacheDir);
             // If cached pfp is not older than an hour, read it from disk else fetch it again in case it has changed
-            if (File.Exists(picCacheDir + userID) && (File.GetLastWriteTime(picCacheDir + userID) - DateTime.Now).TotalHours < 1)
+            if (File.Exists(picCacheFile) && (File.GetLastWriteTime(picCacheFile) - DateTime.Now).TotalHours < 1)
             {
                 profilePic = File.ReadAllBytes(picCacheDir + userID);
             }
             else
             {
                 // Fetch pfp from server and save it to cache
-
-                // If null return null
+                User user = await fetchUserInfo(userID);
+                try
+                {
+                    profilePic = Convert.FromBase64String(user.Picture);
+                    File.WriteAllBytes(picCacheFile, profilePic);
+                }
+                catch { };
             }
             return profilePic;
         }
@@ -670,7 +679,7 @@ namespace NeaClient
                 var content = new
                 {
                     token = activeUser.Token,
-                    code =inviteCode
+                    code = inviteCode
                 };
                 response = await client.PostAsJsonAsync("/api/guild/join", content);
                 successfullConnection = true;
@@ -708,10 +717,10 @@ namespace NeaClient
                 }
             }
         }
-        private void joinGuildFromCodeToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void joinGuildFromCodeToolStripMenuItem_Click(object sender, EventArgs e)
         {
             string inviteCode = Microsoft.VisualBasic.Interaction.InputBox("Join Guild", "Enter the invite code:");
-            joinGuild(inviteCode);
+            if (!string.IsNullOrEmpty(inviteCode)) await joinGuild(inviteCode);
             fillGuildSidebar();
         }
 
@@ -755,7 +764,7 @@ namespace NeaClient
 
         private void invitesToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (activeGuildIndex > 0)
+            if (activeGuildIndex != -1)
             {
                 Form invites = new frmInvites(guilds[activeGuildIndex], activeUser);
                 invites.Show();
@@ -763,7 +772,7 @@ namespace NeaClient
         }
         private void listUsersToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (activeGuildIndex > -1)
+            if (activeGuildIndex != -1)
             {
                 Form guildUsers = new frmGuildUsers(guilds[activeGuildIndex], activeUser);
                 guildUsers.Show();
@@ -892,6 +901,109 @@ namespace NeaClient
         private void viewDescriptionToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MessageBox.Show(guilds[activeGuildIndex].Description);
+        }
+
+        private async void newChannelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            string channelName = Microsoft.VisualBasic.Interaction.InputBox("Enter channel name:");
+            if (!string.IsNullOrEmpty(channelName)) await createChannel(channelName);
+            fillGuildSidebar();
+        }
+        private async Task createChannel(string channelName)
+        {
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            try
+            {
+                var content = new
+                {
+                    token = activeUser.Token,
+                    channelName = channelName,
+                    guildID = guilds[activeGuildIndex]
+                };
+                response = await client.PostAsJsonAsync("/api/guild/createChannel", content);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if (jsonResponseObject.ContainsKey("errcode"))
+                {
+                    if (jsonResponseObject.errcode == "CHANNEL_EXISTS")
+                    {
+                        MessageBox.Show("A channel with the name " + channelName + " already exists..");
+                    }
+                    else
+                    {
+                        showError(jsonResponseObject);
+                    }
+                }
+                else
+                {
+                    requestGuildKey(jsonResponseObject.guildID);
+                }
+            }
+            else
+            {
+                if (!menuStrip1.Items["offlineIndicator"].Visible)
+                {
+                    menuStrip1.Items["offlineIndicator"].Visible = true;
+                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
+                }
+            }
+        }
+
+        private void uploadProfilePicToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            openFileDialog1.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.gif;*.tif";
+            if (openFileDialog1.ShowDialog() == DialogResult.OK)
+            {
+                setProfilePic(openFileDialog1.FileName);
+            }
+        }
+        private async Task setProfilePic(string path)
+        {
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            string imageBase64 = Convert.ToBase64String(File.ReadAllBytes(path));
+            var content = new
+            {
+                image = imageBase64,
+                token = activeUser.Token
+            };
+            try
+            {
+                response = await client.PostAsJsonAsync("/api/account/setPicture", content);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if (jsonResponseObject.ContainsKey("errcode"))
+                {
+                    showError(jsonResponseObject);
+                }
+            }
+            else
+            {
+                if (!menuStrip1.Items["offlineIndicator"].Visible)
+                {
+                    menuStrip1.Items["offlineIndicator"].Visible = true;
+                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
+                }
+            }
         }
     }
 }
