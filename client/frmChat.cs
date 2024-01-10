@@ -350,7 +350,7 @@ namespace NeaClient
         }
         private async Task sendMessage(string messageContent, int type)
         {
-            await displayNewMessages();
+            await displayNewerMessages();
             Message message = new Message
             {
                 Type = type,
@@ -504,9 +504,9 @@ namespace NeaClient
             // Check disk for picture, if not found fetch it from server
             if (!Directory.Exists(picCacheDir)) Directory.CreateDirectory(picCacheDir);
             // If cached pfp is not older than an hour, read it from disk else fetch it again in case it has changed
-            if (File.Exists(picCacheFile) && (File.GetLastWriteTime(picCacheFile) - DateTime.Now).TotalHours < 1)
+            if (File.Exists(picCacheFile) && (DateTime.Now - File.GetLastWriteTime(picCacheFile)).TotalHours < 1)
             {
-                profilePic = File.ReadAllBytes(picCacheDir + userID);
+                profilePic = File.ReadAllBytes(picCacheFile);
             }
             else
             {
@@ -540,20 +540,24 @@ namespace NeaClient
             }
             catch { };
         }
-        private async Task<List<Message>> fetchMessages(string channelID, string afterMessageID = null)
+        private async Task<List<Message>> fetchMessages(string channelID, string afterMessageID = null, string beforeMessageID = null)
         {
             var recievedMessages = new List<Message>();
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             try
             {
-                if (afterMessageID == null)
+                if (afterMessageID != null)
                 {
-                    response = await client.GetAsync("/api/content/getMessages?token=" + activeUser.Token + "&channelID=" + channelID);
+                    response = await client.GetAsync("/api/content/getMessages?token=" + activeUser.Token + "&channelID=" + channelID + "&afterMessageID=" + afterMessageID);
+                }
+                else if (beforeMessageID != null)
+                {
+                    response = await client.GetAsync("/api/content/getMessages?token=" + activeUser.Token + "&channelID=" + channelID + "&beforeMessageID=" + beforeMessageID);
                 }
                 else
                 {
-                    response = await client.GetAsync("/api/content/getMessages?token=" + activeUser.Token + "&channelID=" + channelID + "&afterMessageID=" + afterMessageID);
+                    response = await client.GetAsync("/api/content/getMessages?token=" + activeUser.Token + "&channelID=" + channelID);
                 }
                 successfullConnection = true;
             }
@@ -834,23 +838,61 @@ namespace NeaClient
             }
             return false;
         }
-        public async Task displayNewMessages()
+        public async Task displayNewerMessages(bool clearOld = false)
         {
-            int initialMessageCount = messages.Count;
-            if (messages.Count > 0)
+            List<Message> newerMessages;
+            newerMessages = await fetchMessages(activeChannelID, afterMessageID: messages[messages.Count - 1].ID); // Fetches the next 50 messages after the last currently displayed one
+
+            int i;
+            tblMessages.SuspendLayout();
+            if (clearOld)
             {
-                messages.AddRange(await fetchMessages(activeChannelID, messages[messages.Count - 1].ID));
+                i = 0;
+                tblMessages.Controls.Clear();
+                messages = newerMessages;
             }
-            if (messages.Count > initialMessageCount)
+            else
             {
+                i = messages.Count - 1;
+                messages.AddRange(newerMessages);
+            }
+            for (i = i; i < messages.Count - 1; i++)
+            {
+                messages[i].Decrypt(guilds[activeGuildIndex].Key);
+                displayMessage(messages[i], i);
+            }
+            tblMessages.ResumeLayout();
+        }
+        public async Task displayOlderMessages()
+        {
+            if (messages.Count <= 0) return; // If there are no messages in the active channel return nothing.
+            List<Message> olderMessages = await fetchMessages(activeChannelID, beforeMessageID: messages.First().ID); // Fetches the previous 50 messages before the currently displayed one.
+            if (olderMessages.Count > 0)
+            {
+                tmrMessageCheck.Stop();
+                hideMessageControls();
+                messages = olderMessages;
+                tblMessages.Controls.Clear();
                 tblMessages.SuspendLayout();
-                for (int i = initialMessageCount; i < messages.Count; i++)
+                for (int i = 0; i < messages.Count; i++)
                 {
                     messages[i].Decrypt(guilds[activeGuildIndex].Key);
                     displayMessage(messages[i], i);
                 }
                 tblMessages.ResumeLayout();
             }
+        }
+        public void hideMessageControls()
+        {
+            txtMessageText.Hide();
+            btnEditor.Hide();
+            btnSend.Hide();
+        }
+        public void showMessageControls()
+        {
+            txtMessageText.Show();
+            btnEditor.Show();
+            btnSend.Show();
         }
         private void tmrFulfillGuildRequests_Tick(object sender, EventArgs e)
         {
@@ -864,7 +906,7 @@ namespace NeaClient
                 await modifyMsgListSS.WaitAsync();
                 try
                 {
-                    await displayNewMessages();
+                    await displayNewerMessages();
                 }
                 finally
                 {
@@ -1003,6 +1045,47 @@ namespace NeaClient
                     menuStrip1.Items["offlineIndicator"].Visible = true;
                     MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
                 }
+            }
+        }
+
+        private async void btnViewOlderMessages_Click(object sender, EventArgs e)
+        {
+            await modifyMsgListSS.WaitAsync();
+            try
+            {
+                displayOlderMessages();
+            }
+            finally
+            {
+                modifyMsgListSS.Release();
+            }
+        }
+
+        private async void btnJumpToPresent_Click(object sender, EventArgs e)
+        {
+            await modifyMsgListSS.WaitAsync();
+            try
+            {
+                displayChannel(activeChannelID);
+            }
+            finally
+            {
+                modifyMsgListSS.Release();
+            }
+
+            showMessageControls();
+        }
+
+        private async void btnViewNewerMessages_Click(object sender, EventArgs e)
+        {
+            await modifyMsgListSS.WaitAsync();
+            try
+            {
+                await displayNewerMessages(true);
+            }
+            finally
+            {
+                modifyMsgListSS.Release();
             }
         }
     }
