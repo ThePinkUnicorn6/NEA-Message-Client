@@ -40,6 +40,7 @@
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.accountOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.addAccountToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.uploadProfilePicToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createGuildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.joinGuildFromCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -68,7 +69,6 @@
             this.btnViewOlderMessages = new System.Windows.Forms.Button();
             this.btnViewNewerMessages = new System.Windows.Forms.Button();
             this.btnJumpToPresent = new System.Windows.Forms.Button();
-            this.uploadProfilePicToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlGuilds.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlMessages.SuspendLayout();
@@ -169,7 +169,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStrip1.Size = new System.Drawing.Size(1074, 25);
+            this.menuStrip1.Size = new System.Drawing.Size(1074, 24);
             this.menuStrip1.TabIndex = 6;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -178,7 +178,7 @@
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.accountOptionsToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(61, 21);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
             this.fileToolStripMenuItem.Text = "Settings";
             this.fileToolStripMenuItem.Click += new System.EventHandler(this.fileToolStripMenuItem_Click);
             // 
@@ -188,15 +188,22 @@
             this.addAccountToolStripMenuItem,
             this.uploadProfilePicToolStripMenuItem});
             this.accountOptionsToolStripMenuItem.Name = "accountOptionsToolStripMenuItem";
-            this.accountOptionsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.accountOptionsToolStripMenuItem.Size = new System.Drawing.Size(164, 22);
             this.accountOptionsToolStripMenuItem.Text = "Account Options";
             // 
             // addAccountToolStripMenuItem
             // 
             this.addAccountToolStripMenuItem.Name = "addAccountToolStripMenuItem";
-            this.addAccountToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.addAccountToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
             this.addAccountToolStripMenuItem.Text = "Add Account";
             this.addAccountToolStripMenuItem.Click += new System.EventHandler(this.addAccountToolStripMenuItem_Click);
+            // 
+            // uploadProfilePicToolStripMenuItem
+            // 
+            this.uploadProfilePicToolStripMenuItem.Name = "uploadProfilePicToolStripMenuItem";
+            this.uploadProfilePicToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
+            this.uploadProfilePicToolStripMenuItem.Text = "Upload ProfilePic";
+            this.uploadProfilePicToolStripMenuItem.Click += new System.EventHandler(this.uploadProfilePicToolStripMenuItem_Click);
             // 
             // testToolStripMenuItem
             // 
@@ -204,7 +211,7 @@
             this.createGuildToolStripMenuItem,
             this.joinGuildFromCodeToolStripMenuItem});
             this.testToolStripMenuItem.Name = "testToolStripMenuItem";
-            this.testToolStripMenuItem.Size = new System.Drawing.Size(52, 21);
+            this.testToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
             this.testToolStripMenuItem.Text = "Guilds";
             // 
             // createGuildToolStripMenuItem
@@ -226,7 +233,7 @@
             this.privateChatsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.createDMToolStripMenuItem});
             this.privateChatsToolStripMenuItem.Name = "privateChatsToolStripMenuItem";
-            this.privateChatsToolStripMenuItem.Size = new System.Drawing.Size(88, 21);
+            this.privateChatsToolStripMenuItem.Size = new System.Drawing.Size(88, 20);
             this.privateChatsToolStripMenuItem.Text = "Private Chats";
             // 
             // createDMToolStripMenuItem
@@ -244,7 +251,7 @@
             this.deleteGuildToolStripMenuItem,
             this.viewDescriptionToolStripMenuItem});
             this.guildSettingsToolStripMenuItem.Name = "guildSettingsToolStripMenuItem";
-            this.guildSettingsToolStripMenuItem.Size = new System.Drawing.Size(92, 21);
+            this.guildSettingsToolStripMenuItem.Size = new System.Drawing.Size(92, 20);
             this.guildSettingsToolStripMenuItem.Text = "Guild Settings";
             // 
             // listUsersToolStripMenuItem
@@ -300,7 +307,7 @@
             this.deleteChannelToolStripMenuItem,
             this.changeChannelPermissions});
             this.channelSettings.Name = "channelSettings";
-            this.channelSettings.Size = new System.Drawing.Size(108, 21);
+            this.channelSettings.Size = new System.Drawing.Size(108, 20);
             this.channelSettings.Text = "Channel Settings";
             // 
             // newChannelToolStripMenuItem
@@ -404,6 +411,7 @@
             this.btnViewOlderMessages.TabIndex = 8;
             this.btnViewOlderMessages.Text = "<- View Older Messages";
             this.btnViewOlderMessages.UseVisualStyleBackColor = true;
+            this.btnViewOlderMessages.Click += new System.EventHandler(this.btnViewOlderMessages_Click);
             // 
             // btnViewNewerMessages
             // 
@@ -414,6 +422,7 @@
             this.btnViewNewerMessages.TabIndex = 8;
             this.btnViewNewerMessages.Text = "View Newer Messages ->";
             this.btnViewNewerMessages.UseVisualStyleBackColor = true;
+            this.btnViewNewerMessages.Click += new System.EventHandler(this.btnViewNewerMessages_Click);
             // 
             // btnJumpToPresent
             // 
@@ -424,13 +433,7 @@
             this.btnJumpToPresent.TabIndex = 8;
             this.btnJumpToPresent.Text = "Jump To Present >>";
             this.btnJumpToPresent.UseVisualStyleBackColor = true;
-            // 
-            // uploadProfilePicToolStripMenuItem
-            // 
-            this.uploadProfilePicToolStripMenuItem.Name = "uploadProfilePicToolStripMenuItem";
-            this.uploadProfilePicToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.uploadProfilePicToolStripMenuItem.Text = "Upload ProfilePic";
-            this.uploadProfilePicToolStripMenuItem.Click += new System.EventHandler(this.uploadProfilePicToolStripMenuItem_Click);
+            this.btnJumpToPresent.Click += new System.EventHandler(this.btnJumpToPresent_Click);
             // 
             // frmChat
             // 
