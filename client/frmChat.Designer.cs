@@ -31,7 +31,6 @@
             this.components = new System.ComponentModel.Container();
             this.pnlGuilds = new System.Windows.Forms.Panel();
             this.tvGuilds = new System.Windows.Forms.TreeView();
-            this.txtSearch = new System.Windows.Forms.TextBox();
             this.txtMessageText = new System.Windows.Forms.TextBox();
             this.tblMessages = new System.Windows.Forms.TableLayoutPanel();
             this.btnSend = new System.Windows.Forms.Button();
@@ -39,7 +38,6 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.accountOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.addAccountToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.uploadProfilePicToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createGuildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -62,6 +60,7 @@
             this.adminToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.anyoneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlMessages = new System.Windows.Forms.Panel();
+            this.txtGuildMessage = new System.Windows.Forms.TextBox();
             this.txtKeyWarning = new System.Windows.Forms.TextBox();
             this.tmrFulfillGuildRequests = new System.Windows.Forms.Timer(this.components);
             this.tmrMessageCheck = new System.Windows.Forms.Timer(this.components);
@@ -79,7 +78,6 @@
             this.pnlGuilds.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left)));
             this.pnlGuilds.Controls.Add(this.tvGuilds);
-            this.pnlGuilds.Controls.Add(this.txtSearch);
             this.pnlGuilds.Location = new System.Drawing.Point(12, 27);
             this.pnlGuilds.Name = "pnlGuilds";
             this.pnlGuilds.Size = new System.Drawing.Size(253, 642);
@@ -90,23 +88,12 @@
             this.tvGuilds.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.tvGuilds.Location = new System.Drawing.Point(3, 32);
+            this.tvGuilds.Location = new System.Drawing.Point(3, 3);
             this.tvGuilds.Name = "tvGuilds";
             this.tvGuilds.ShowPlusMinus = false;
-            this.tvGuilds.Size = new System.Drawing.Size(247, 514);
+            this.tvGuilds.Size = new System.Drawing.Size(247, 543);
             this.tvGuilds.TabIndex = 1;
             this.tvGuilds.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.tvGuilds_NodeMouseClick);
-            // 
-            // txtSearch
-            // 
-            this.txtSearch.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtSearch.Location = new System.Drawing.Point(3, 3);
-            this.txtSearch.Name = "txtSearch";
-            this.txtSearch.PlaceholderText = "Search Guilds/Channels:";
-            this.txtSearch.Size = new System.Drawing.Size(247, 23);
-            this.txtSearch.TabIndex = 0;
             // 
             // txtMessageText
             // 
@@ -169,7 +156,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStrip1.Size = new System.Drawing.Size(1074, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(1074, 25);
             this.menuStrip1.TabIndex = 6;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -178,25 +165,17 @@
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.accountOptionsToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(61, 20);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(61, 21);
             this.fileToolStripMenuItem.Text = "Settings";
             this.fileToolStripMenuItem.Click += new System.EventHandler(this.fileToolStripMenuItem_Click);
             // 
             // accountOptionsToolStripMenuItem
             // 
             this.accountOptionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.addAccountToolStripMenuItem,
             this.uploadProfilePicToolStripMenuItem});
             this.accountOptionsToolStripMenuItem.Name = "accountOptionsToolStripMenuItem";
             this.accountOptionsToolStripMenuItem.Size = new System.Drawing.Size(164, 22);
             this.accountOptionsToolStripMenuItem.Text = "Account Options";
-            // 
-            // addAccountToolStripMenuItem
-            // 
-            this.addAccountToolStripMenuItem.Name = "addAccountToolStripMenuItem";
-            this.addAccountToolStripMenuItem.Size = new System.Drawing.Size(165, 22);
-            this.addAccountToolStripMenuItem.Text = "Add Account";
-            this.addAccountToolStripMenuItem.Click += new System.EventHandler(this.addAccountToolStripMenuItem_Click);
             // 
             // uploadProfilePicToolStripMenuItem
             // 
@@ -211,7 +190,7 @@
             this.createGuildToolStripMenuItem,
             this.joinGuildFromCodeToolStripMenuItem});
             this.testToolStripMenuItem.Name = "testToolStripMenuItem";
-            this.testToolStripMenuItem.Size = new System.Drawing.Size(52, 20);
+            this.testToolStripMenuItem.Size = new System.Drawing.Size(52, 21);
             this.testToolStripMenuItem.Text = "Guilds";
             // 
             // createGuildToolStripMenuItem
@@ -233,7 +212,7 @@
             this.privateChatsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.createDMToolStripMenuItem});
             this.privateChatsToolStripMenuItem.Name = "privateChatsToolStripMenuItem";
-            this.privateChatsToolStripMenuItem.Size = new System.Drawing.Size(88, 20);
+            this.privateChatsToolStripMenuItem.Size = new System.Drawing.Size(88, 21);
             this.privateChatsToolStripMenuItem.Text = "Private Chats";
             // 
             // createDMToolStripMenuItem
@@ -251,7 +230,7 @@
             this.deleteGuildToolStripMenuItem,
             this.viewDescriptionToolStripMenuItem});
             this.guildSettingsToolStripMenuItem.Name = "guildSettingsToolStripMenuItem";
-            this.guildSettingsToolStripMenuItem.Size = new System.Drawing.Size(92, 20);
+            this.guildSettingsToolStripMenuItem.Size = new System.Drawing.Size(92, 21);
             this.guildSettingsToolStripMenuItem.Text = "Guild Settings";
             // 
             // listUsersToolStripMenuItem
@@ -307,7 +286,7 @@
             this.deleteChannelToolStripMenuItem,
             this.changeChannelPermissions});
             this.channelSettings.Name = "channelSettings";
-            this.channelSettings.Size = new System.Drawing.Size(108, 20);
+            this.channelSettings.Size = new System.Drawing.Size(108, 21);
             this.channelSettings.Text = "Channel Settings";
             // 
             // newChannelToolStripMenuItem
@@ -322,6 +301,7 @@
             this.renameChannelToolStripMenuItem.Name = "renameChannelToolStripMenuItem";
             this.renameChannelToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
             this.renameChannelToolStripMenuItem.Text = "Rename Channel";
+            this.renameChannelToolStripMenuItem.Click += new System.EventHandler(this.renameChannelToolStripMenuItem_Click);
             // 
             // deleteChannelToolStripMenuItem
             // 
@@ -364,12 +344,29 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlMessages.AutoScroll = true;
             this.pnlMessages.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.pnlMessages.Controls.Add(this.txtGuildMessage);
             this.pnlMessages.Controls.Add(this.txtKeyWarning);
             this.pnlMessages.Controls.Add(this.tblMessages);
             this.pnlMessages.Location = new System.Drawing.Point(269, 59);
             this.pnlMessages.Name = "pnlMessages";
             this.pnlMessages.Size = new System.Drawing.Size(793, 486);
             this.pnlMessages.TabIndex = 7;
+            // 
+            // txtGuildMessage
+            // 
+            this.txtGuildMessage.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtGuildMessage.BackColor = System.Drawing.SystemColors.Info;
+            this.txtGuildMessage.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
+            this.txtGuildMessage.Location = new System.Drawing.Point(273, 161);
+            this.txtGuildMessage.Multiline = true;
+            this.txtGuildMessage.Name = "txtGuildMessage";
+            this.txtGuildMessage.Size = new System.Drawing.Size(277, 159);
+            this.txtGuildMessage.TabIndex = 4;
+            this.txtGuildMessage.Text = "You are not in any guilds, try joining one by opening the guilds menu and enterin" +
+    "g an invite code.";
+            this.txtGuildMessage.Visible = false;
             // 
             // txtKeyWarning
             // 
@@ -455,7 +452,6 @@
             this.Text = "Home";
             this.Load += new System.EventHandler(this.frmChat_Load);
             this.pnlGuilds.ResumeLayout(false);
-            this.pnlGuilds.PerformLayout();
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
             this.pnlMessages.ResumeLayout(false);
@@ -480,7 +476,6 @@
         private ToolStripMenuItem accountOptionsToolStripMenuItem;
         private ToolStripMenuItem createGuildToolStripMenuItem;
         private ToolStripMenuItem joinGuildFromCodeToolStripMenuItem;
-        private ToolStripMenuItem addAccountToolStripMenuItem;
         private ToolStripMenuItem privateChatsToolStripMenuItem;
         private Panel pnlMessages;
         private ToolStripMenuItem guildSettingsToolStripMenuItem;
@@ -510,5 +505,6 @@
         private Button btnViewNewerMessages;
         private Button btnJumpToPresent;
         private ToolStripMenuItem uploadProfilePicToolStripMenuItem;
+        private TextBox txtGuildMessage;
     }
 }

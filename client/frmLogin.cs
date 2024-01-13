@@ -44,9 +44,11 @@ namespace NeaClient
 
             if (jsonResponseObject.token is not null)
             {
+                
                 user = new User
                 {
-                    Token = jsonResponseObject.token.ToString()
+                    Token = jsonResponseObject.token.ToString(),
+                    PrivateKey = Convert.FromBase64String(Microsoft.VisualBasic.Interaction.InputBox("Private Key", "Enter your private key to be able to read messages:"))
                 };
                 // TODO: ask user to enter a backup of the private key, or generate a new key if the old one is lost
                 server = txtServerAddress.Text;
