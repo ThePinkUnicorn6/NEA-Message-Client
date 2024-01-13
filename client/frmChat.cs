@@ -1,4 +1,5 @@
 ﻿using System;
+
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -34,6 +35,7 @@ namespace NeaClient
         }
         private async void frmChat_Load(object sender, EventArgs e)
         {
+            hideMessageControls();
             List<string[]> tokens = new List<string[]>{};
             try
             {
@@ -397,7 +399,7 @@ namespace NeaClient
                 response = await client.PostAsJsonAsync("/api/content/sendMessage", content);
                 successfullConnection = true;
             }
-            catch
+            catch (Exception ex)
             {
                 successfullConnection = false;
             }
@@ -429,6 +431,12 @@ namespace NeaClient
         }
         public async Task sendImageMessage(string channelID, string filePath)
         {
+            FileInfo info = new FileInfo(filePath);
+            if (info.Length > 20000000)
+            {
+                MessageBox.Show("File too big!!!");
+                return;
+            }
             byte[] imageBytes = File.ReadAllBytes(filePath);
             await modifyMsgListSS.WaitAsync();
             try
@@ -442,6 +450,7 @@ namespace NeaClient
         }
         private async Task displayChannel(string channelID)
         {
+            showMessageControls();
             activeChannelID = channelID;
             tblMessages.Controls.Clear();
             txtKeyWarning.Visible = false;
@@ -1072,8 +1081,7 @@ namespace NeaClient
             {
                 modifyMsgListSS.Release();
             }
-
-            showMessageControls();
+            
         }
 
         private async void btnViewNewerMessages_Click(object sender, EventArgs e)
