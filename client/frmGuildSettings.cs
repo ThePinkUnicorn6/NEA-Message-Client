@@ -111,7 +111,6 @@ namespace NeaClient
                         };
                         response = await client.PostAsJsonAsync("/api/guild/setDetails", content);
                     }
-                                
                     catch
                     {
                         MessageBox.Show("Could not connect to " + activeUser.ServerURL, "Connection Error.");

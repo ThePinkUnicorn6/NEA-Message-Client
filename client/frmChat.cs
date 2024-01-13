@@ -35,25 +35,19 @@ namespace NeaClient
         }
         private async void frmChat_Load(object sender, EventArgs e)
         {
-            hideMessageControls();
+            hideMessageControls(true);
             List<string[]> tokens = new List<string[]>{};
-            try
-            {
-                if (File.ReadAllText(tokenFile) == "") // If the tokens file has no tokens open the login page.
-                {
-                    addLogin();
-                }
-                tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
-                activeUser = new User
-                {
-                    Token = tokens[0][1],
-                    ServerURL = tokens[0][0]
-                };
-            }
-            catch // If the tokens file does not exist, open the login page.
+
+            if (!File.Exists(tokenFile) || File.ReadAllText(tokenFile) == "") // If the tokens file has no tokens open the login page.
             {
                 addLogin();
             }
+            tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
+            activeUser = new User
+            {
+                Token = tokens[0][1],
+                ServerURL = tokens[0][0]
+            };
             if (string.IsNullOrEmpty(activeUser.Token)) // If the login page has not added any tokens, the user must have closed it, so close the program.
             {
                 this.Close();
@@ -198,6 +192,14 @@ namespace NeaClient
                     
                     tvGuilds.BeginUpdate();
                     tvGuilds.Nodes.Clear();
+                    if (guilds.Count == 0)
+                    {
+                        txtGuildMessage.Show();
+                    }
+                    else
+                    {
+                        txtGuildMessage.Hide();
+                    }
                     foreach (Guild guild in guilds)
                     {
                         TreeNode tempNode = new TreeNode(guild.Name);
@@ -237,6 +239,8 @@ namespace NeaClient
                 server = frmLogin.server;
                 client = frmLogin.client;
             }
+            Clipboard.SetText(Convert.ToBase64String(user.PrivateKey));
+            MessageBox.Show("Here is your private key, you will need it if you want to be able to read messages after loging in again so store it somewhere safe. It has been added to your clipboard to paste somewher. \n" + Convert.ToBase64String(user.PrivateKey));
             if (File.Exists(tokenFile)) // Checks if a token file has been created, and readse its contents if it has.
             {
                 tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
@@ -366,7 +370,7 @@ namespace NeaClient
                 guilds[activeGuildIndex].GetKey();
                 if (guilds[activeGuildIndex].Key == null) // If it is not in the file, request it
                 {
-                    bool fetchedSuccessfully = await requestGuildKey(guilds[activeGuildIndex].ID);
+                    bool fetchedSuccessfully = await utility.requestGuildKey(guilds[activeGuildIndex].ID, activeUser, guilds[activeGuildIndex].KeyDigest);
                     if (fetchedSuccessfully) // If a key request has been previously made, another user might have submitted their keys, so the key should be in the keyfile.
                     {
                         guilds[activeGuildIndex].GetKey();
@@ -459,7 +463,7 @@ namespace NeaClient
                 guilds[activeGuildIndex].GetKey();
                 if (guilds[activeGuildIndex].Key == null) // If it is not in the file, request it
                 {
-                    bool fetchedSuccessfully = await requestGuildKey(guilds[activeGuildIndex].ID);
+                    bool fetchedSuccessfully = await utility.requestGuildKey(guilds[activeGuildIndex].ID, activeUser, guilds[activeGuildIndex].KeyDigest);
                     if (fetchedSuccessfully) // If a key request has been previously made, another user might have submitted their keys, so the key should be in the keyfile.
                     {
                         guilds[activeGuildIndex].GetKey();
@@ -524,7 +528,7 @@ namespace NeaClient
                 try
                 {
                     profilePic = Convert.FromBase64String(user.Picture);
-                    File.WriteAllBytes(picCacheFile, profilePic);
+                    if (profilePic.Length > 0) File.WriteAllBytes(picCacheFile, profilePic);
                 }
                 catch { };
             }
@@ -642,12 +646,6 @@ namespace NeaClient
                 }
             }
         }
-
-        private void addAccountToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            addLogin();
-        }
-
         private void createGuildToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Form frmGuildSettings = new frmGuildSettings(activeUser);
@@ -719,7 +717,7 @@ namespace NeaClient
                 }
                 else
                 {
-                    requestGuildKey(jsonResponseObject.guildID);
+                    utility.requestGuildKey(guilds[activeGuildIndex].ID, activeUser, guilds[activeGuildIndex].KeyDigest);
                 }
             }
             else
@@ -791,70 +789,16 @@ namespace NeaClient
                 guildUsers.Show();
             }
         }
-        public async Task<bool> requestGuildKey(string guildID)
-        {
-            HttpResponseMessage response = new HttpResponseMessage();
-            bool successfullConnection;
-            byte[] keyCypherText;
-            try
-            {
-                var content = new
-                {
-                    token = activeUser.Token,
-                    guildID = guildID
-                };
-                response = await client.PostAsJsonAsync("/api/guild/key/request", content);
-                successfullConnection = true;
-            }
-            catch
-            {
-                successfullConnection = false;
-            }
-            if (successfullConnection)
-            {
-                menuStrip1.Items["offlineIndicator"].Visible = false;
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                if ((int)response.StatusCode == 200 && jsonResponseObject != null && jsonResponseObject.ContainsKey("key")) // If the client has requested the keys previously and another user has submitted the keys, 
-                {
-                    byte[] guildKey;
-                    keyCypherText = Convert.FromBase64String((string)jsonResponseObject.key);
-                    // Decrypt guild key
-                    using (RSA rsa = RSA.Create())
-                    {
-                        rsa.ImportRSAPrivateKey(activeUser.PrivateKey, out _);
-                        guildKey = rsa.Decrypt(keyCypherText, RSAEncryptionPadding.OaepSHA256);
-                    }
-                    // Check if key is valid
-                    if (Convert.ToBase64String(SHA256.HashData(guildKey)) == guilds[activeGuildIndex].KeyDigest)
-                    {
-                        // If the key that has been submited is correct, save it to file.
-                        utility.saveKey(guildID, guildKey);
-                        return true;
-                    }
-                }
-                else if (jsonResponseObject != null && jsonResponseObject.ContainsKey("errcode"))
-                {
-                    showError(jsonResponseObject);
-                }
-            }
-            else
-            {
-                if (!menuStrip1.Items["offlineIndicator"].Visible) 
-                {
-                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
-                }
-            }
-            return false;
-        }
+        
         public async Task displayNewerMessages(bool clearOld = false)
         {
             List<Message> newerMessages;
-            newerMessages = await fetchMessages(activeChannelID, afterMessageID: messages[messages.Count - 1].ID); // Fetches the next 50 messages after the last currently displayed one
+            string afterMessageID = messages.Count > 0 ? messages[messages.Count - 1].ID : null;
+            newerMessages = await fetchMessages(activeChannelID, afterMessageID: afterMessageID); // Fetches the next 50 messages after the last currently displayed one
 
             int i;
             tblMessages.SuspendLayout();
-            if (clearOld)
+            if (newerMessages.Count > 0 && clearOld)
             {
                 i = 0;
                 tblMessages.Controls.Clear();
@@ -891,17 +835,26 @@ namespace NeaClient
                 tblMessages.ResumeLayout();
             }
         }
-        public void hideMessageControls()
+        public void hideMessageControls(bool includeNavButtons = false)
         {
             txtMessageText.Hide();
             btnEditor.Hide();
             btnSend.Hide();
+            if (includeNavButtons)
+            {
+                btnJumpToPresent.Hide();
+                btnViewNewerMessages.Hide();
+                btnViewOlderMessages.Hide();
+            }
         }
         public void showMessageControls()
         {
             txtMessageText.Show();
             btnEditor.Show();
             btnSend.Show();
+            btnJumpToPresent.Show();
+            btnViewNewerMessages.Show();
+            btnViewOlderMessages.Show();
         }
         private void tmrFulfillGuildRequests_Tick(object sender, EventArgs e)
         {
@@ -910,18 +863,18 @@ namespace NeaClient
 
         private async void tmrMessageCheck_Tick(object sender, EventArgs e)
         {
-            if (activeChannelID != null)
-            {
-                await modifyMsgListSS.WaitAsync();
-                try
-                {
-                    await displayNewerMessages();
-                }
-                finally
-                {
-                    modifyMsgListSS.Release();
-                }
-            }
+            //if (activeChannelID != null)
+            //{
+            //    await modifyMsgListSS.WaitAsync();
+            //    try
+            //    {
+            //        await displayNewerMessages();
+            //    }
+            //    finally
+            //    {
+            //        modifyMsgListSS.Release();
+            //    }
+            //}
         }
 
         private async void btnEditor_Click(object sender, EventArgs e)
@@ -962,6 +915,7 @@ namespace NeaClient
         }
         private async Task createChannel(string channelName)
         {
+            if (activeGuildIndex == -1) return;
             HttpResponseMessage response = new HttpResponseMessage();
             bool successfullConnection;
             try
@@ -970,9 +924,9 @@ namespace NeaClient
                 {
                     token = activeUser.Token,
                     channelName = channelName,
-                    guildID = guilds[activeGuildIndex]
+                    guildID = guilds[activeGuildIndex].ID
                 };
-                response = await client.PostAsJsonAsync("/api/guild/createChannel", content);
+                response = await client.PostAsJsonAsync("/api/guild/channel/create", content);
                 successfullConnection = true;
             }
             catch
@@ -983,21 +937,20 @@ namespace NeaClient
             {
                 menuStrip1.Items["offlineIndicator"].Visible = false;
                 var jsonResponse = await response.Content.ReadAsStringAsync();
-                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                if (jsonResponseObject.ContainsKey("errcode"))
+                if (jsonResponse != "")
                 {
-                    if (jsonResponseObject.errcode == "CHANNEL_EXISTS")
+                    dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                    if (jsonResponseObject.ContainsKey("errcode"))
                     {
-                        MessageBox.Show("A channel with the name " + channelName + " already exists..");
+                        if (jsonResponseObject.errcode == "CHANNEL_EXISTS")
+                        {
+                            MessageBox.Show("A channel with the name " + channelName + " already exists..");
+                        }
+                        else
+                        {
+                            showError(jsonResponseObject);
+                        }
                     }
-                    else
-                    {
-                        showError(jsonResponseObject);
-                    }
-                }
-                else
-                {
-                    requestGuildKey(jsonResponseObject.guildID);
                 }
             }
             else
@@ -1045,6 +998,10 @@ namespace NeaClient
                 if (jsonResponseObject.ContainsKey("errcode"))
                 {
                     showError(jsonResponseObject);
+                }
+                else
+                {
+                    File.Delete("./ProfilePicCache/" + activeUser.ID);
                 }
             }
             else
@@ -1094,6 +1051,49 @@ namespace NeaClient
             finally
             {
                 modifyMsgListSS.Release();
+            }
+        }
+
+        private async void renameChannelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (activeChannelID == null) return;
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            try
+            {
+                var content = new
+                {
+                    token = activeUser.Token,
+                    channelID = activeChannelID,
+                    channelName = Microsoft.VisualBasic.Interaction.InputBox("Rename channel", "Enter new name:")
+                };
+                response = await client.PostAsJsonAsync("/api/guild/channel/rename", content);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if (jsonResponseObject != null && jsonResponseObject.ContainsKey("errcode"))
+                {
+                    showError(jsonResponseObject);
+                }
+                else
+                {
+                    fillGuildSidebar();
+                }
+            }
+            else
+            {
+                if (!menuStrip1.Items["offlineIndicator"].Visible)
+                {
+                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
+                }
             }
         }
     }

@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using System.Net.Http.Json;
+using System.Security.Cryptography;
 
 namespace NeaClient
 {
@@ -86,6 +89,61 @@ namespace NeaClient
                     }
                 }
             }
+        }
+        public async Task<bool> requestGuildKey(string guildID, User user, string keyDigest)
+        {
+            HttpClient client = new() { BaseAddress = new Uri("http://" + user.ServerURL) };
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            byte[] keyCypherText;
+            try
+            {
+                var content = new
+                {
+                    token = user.Token,
+                    guildID = guildID
+                };
+                response = await client.PostAsJsonAsync("/api/guild/key/request", content);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if ((int)response.StatusCode == 200 && jsonResponseObject != null && jsonResponseObject.ContainsKey("key")) // If the client has requested the keys previously and another user has submitted the keys, 
+                {
+                    byte[] guildKey;
+                    keyCypherText = Convert.FromBase64String((string)jsonResponseObject.key);
+                    // Decrypt guild key
+                    using (RSA rsa = RSA.Create())
+                    {
+                        rsa.ImportRSAPrivateKey(user.PrivateKey, out _);
+                        guildKey = rsa.Decrypt(keyCypherText, RSAEncryptionPadding.OaepSHA256);
+                    }
+                    // Check if key is valid
+                    if (Convert.ToBase64String(SHA256.HashData(guildKey)) == keyDigest)
+                    {
+                        // If the key that has been submited is correct, save it to file.
+                        saveKey(guildID, guildKey);
+                        return true;
+                    }
+                }
+                else if (jsonResponseObject != null && jsonResponseObject.ContainsKey("errcode"))
+                {
+                    MessageBox.Show(jsonResponseObject.error.ToString(), "Error: " + jsonResponseObject.errcode.ToString(), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            else
+            {
+
+                 MessageBox.Show("Could not connect to: " + user.ServerURL, "Connection Error.");
+
+            }
+            return false;
         }
     }
 }
