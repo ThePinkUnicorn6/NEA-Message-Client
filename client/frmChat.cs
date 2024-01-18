@@ -1096,5 +1096,96 @@ namespace NeaClient
                 }
             }
         }
+
+        private void ownerToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (activeChannelID != null) setChannnelType("Owner");
+        }
+        private void anyoneToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (activeChannelID != null) setChannnelType("Admin");
+        }
+        private void adminToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (activeChannelID != null) setChannnelType("Unpriviliged");
+        }
+        private async Task setChannnelType(string permissionLevel)
+        {
+            if (activeChannelID == null) return;
+            HttpResponseMessage response = new HttpResponseMessage();
+            bool successfullConnection;
+            try
+            {
+                var content = new
+                {
+                    token = activeUser.Token,
+                    channelID = activeChannelID,
+                    channelType = permissionLevel
+                };
+                response = await client.PostAsJsonAsync("/api/guild/channel/setPermissions", content);
+                successfullConnection = true;
+            }
+            catch
+            {
+                successfullConnection = false;
+            }
+            if (successfullConnection)
+            {
+                menuStrip1.Items["offlineIndicator"].Visible = false;
+                var jsonResponse = await response.Content.ReadAsStringAsync();
+                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                if (jsonResponseObject != null && jsonResponseObject.ContainsKey("errcode"))
+                {
+                    showError(jsonResponseObject);
+                }
+            }
+            else
+            {
+                if (!menuStrip1.Items["offlineIndicator"].Visible)
+                {
+                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
+                }
+            }
+        }
+
+        private async void leaveGuildToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (activeGuildIndex != -1 && MessageBox.Show("Warning!", "Are you sure you want to leave this guild?", MessageBoxButtons.YesNo) == DialogResult.Yes);
+            {
+                HttpResponseMessage response = new HttpResponseMessage();
+                bool successfullConnection;
+                try
+                {
+                    var content = new
+                    {
+                        token = activeUser.Token,
+                        guildID = guilds[activeGuildIndex]
+                    };
+                    response = await client.PostAsJsonAsync("/api/guild/leave", content);
+                    successfullConnection = true;
+                }
+                catch
+                {
+                    successfullConnection = false;
+                }
+                if (successfullConnection)
+                {
+                    menuStrip1.Items["offlineIndicator"].Visible = false;
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                    if (jsonResponseObject != null && jsonResponseObject.ContainsKey("errcode"))
+                    {
+                        showError(jsonResponseObject);
+                    }
+                }
+                else
+                {
+                    if (!menuStrip1.Items["offlineIndicator"].Visible)
+                    {
+                        MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
+                    }
+                }
+            }
+        }
     }
 }
