@@ -43,16 +43,18 @@ namespace NeaClient
                 addLogin();
             }
             tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
+
+            if (string.IsNullOrEmpty(activeUser.Token) | tokens.Count == 0) // If the login page has not added any tokens, the user must have closed it, so close the program.
+            {
+                this.Close();
+                return; // Return, otherwise it starts running the next code and errors.
+            }
             activeUser = new User
             {
                 Token = tokens[0][1],
                 ServerURL = tokens[0][0]
             };
-            if (string.IsNullOrEmpty(activeUser.Token)) // If the login page has not added any tokens, the user must have closed it, so close the program.
-            {
-                this.Close();
-                return; // Return, otherwise it starts running the next code and errors.
-            }
+
             client = new() { BaseAddress = new Uri("http://" + activeUser.ServerURL) };
 
             bool fillGuildSidebarSuccess;
@@ -239,9 +241,10 @@ namespace NeaClient
                 server = frmLogin.server;
                 client = frmLogin.client;
             }
+            if (user == null) return;
             Clipboard.SetText(Convert.ToBase64String(user.PrivateKey));
             MessageBox.Show("Here is your private key, you will need it if you want to be able to read messages after loging in again so store it somewhere safe. It has been added to your clipboard to paste somewher. \n" + Convert.ToBase64String(user.PrivateKey));
-            if (File.Exists(tokenFile)) // Checks if a token file has been created, and readse its contents if it has.
+            if (File.Exists(tokenFile)) // Checks if a token file has been created, and reads its contents if it has.
             {
                 tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
             }
@@ -1235,6 +1238,15 @@ namespace NeaClient
                         MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
                     }
                 }
+            }
+        }
+
+        private void logoutToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (MessageBox.Show("Make sure you have a back up your private key if you want to access this account again! Do you want to continue?", "Warning", MessageBoxButtons.OKCancel) == DialogResult.OK)
+            {
+                File.WriteAllText(tokenFile, "");
+                addLogin();
             }
         }
     }
