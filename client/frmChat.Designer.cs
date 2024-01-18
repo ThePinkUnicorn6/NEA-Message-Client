@@ -42,8 +42,6 @@
             this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createGuildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.joinGuildFromCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.privateChatsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.createDMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.guildSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.listUsersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.invitesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -68,6 +66,7 @@
             this.btnViewOlderMessages = new System.Windows.Forms.Button();
             this.btnViewNewerMessages = new System.Windows.Forms.Button();
             this.btnJumpToPresent = new System.Windows.Forms.Button();
+            this.leaveGuildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlGuilds.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlMessages.SuspendLayout();
@@ -149,7 +148,6 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.fileToolStripMenuItem,
             this.testToolStripMenuItem,
-            this.privateChatsToolStripMenuItem,
             this.guildSettingsToolStripMenuItem,
             this.offlineIndicator,
             this.channelSettings});
@@ -188,7 +186,8 @@
             // 
             this.testToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.createGuildToolStripMenuItem,
-            this.joinGuildFromCodeToolStripMenuItem});
+            this.joinGuildFromCodeToolStripMenuItem,
+            this.leaveGuildToolStripMenuItem});
             this.testToolStripMenuItem.Name = "testToolStripMenuItem";
             this.testToolStripMenuItem.Size = new System.Drawing.Size(52, 21);
             this.testToolStripMenuItem.Text = "Guilds";
@@ -196,30 +195,16 @@
             // createGuildToolStripMenuItem
             // 
             this.createGuildToolStripMenuItem.Name = "createGuildToolStripMenuItem";
-            this.createGuildToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.createGuildToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.createGuildToolStripMenuItem.Text = "Create Guild";
             this.createGuildToolStripMenuItem.Click += new System.EventHandler(this.createGuildToolStripMenuItem_Click);
             // 
             // joinGuildFromCodeToolStripMenuItem
             // 
             this.joinGuildFromCodeToolStripMenuItem.Name = "joinGuildFromCodeToolStripMenuItem";
-            this.joinGuildFromCodeToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.joinGuildFromCodeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.joinGuildFromCodeToolStripMenuItem.Text = "Join Guild";
             this.joinGuildFromCodeToolStripMenuItem.Click += new System.EventHandler(this.joinGuildFromCodeToolStripMenuItem_Click);
-            // 
-            // privateChatsToolStripMenuItem
-            // 
-            this.privateChatsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.createDMToolStripMenuItem});
-            this.privateChatsToolStripMenuItem.Name = "privateChatsToolStripMenuItem";
-            this.privateChatsToolStripMenuItem.Size = new System.Drawing.Size(88, 21);
-            this.privateChatsToolStripMenuItem.Text = "Private Chats";
-            // 
-            // createDMToolStripMenuItem
-            // 
-            this.createDMToolStripMenuItem.Name = "createDMToolStripMenuItem";
-            this.createDMToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
-            this.createDMToolStripMenuItem.Text = "Create DM";
             // 
             // guildSettingsToolStripMenuItem
             // 
@@ -236,35 +221,35 @@
             // listUsersToolStripMenuItem
             // 
             this.listUsersToolStripMenuItem.Name = "listUsersToolStripMenuItem";
-            this.listUsersToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
+            this.listUsersToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.listUsersToolStripMenuItem.Text = "List Users";
             this.listUsersToolStripMenuItem.Click += new System.EventHandler(this.listUsersToolStripMenuItem_Click);
             // 
             // invitesToolStripMenuItem
             // 
             this.invitesToolStripMenuItem.Name = "invitesToolStripMenuItem";
-            this.invitesToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
+            this.invitesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.invitesToolStripMenuItem.Text = "Manage Invites";
             this.invitesToolStripMenuItem.Click += new System.EventHandler(this.invitesToolStripMenuItem_Click);
             // 
             // editGuildStripMenuItem
             // 
             this.editGuildStripMenuItem.Name = "editGuildStripMenuItem";
-            this.editGuildStripMenuItem.Size = new System.Drawing.Size(162, 22);
+            this.editGuildStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.editGuildStripMenuItem.Text = "Edit Guild";
             this.editGuildStripMenuItem.Click += new System.EventHandler(this.editGuildStripMenuItem_Click);
             // 
             // deleteGuildToolStripMenuItem
             // 
             this.deleteGuildToolStripMenuItem.Name = "deleteGuildToolStripMenuItem";
-            this.deleteGuildToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
+            this.deleteGuildToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.deleteGuildToolStripMenuItem.Text = "Delete Guild";
             this.deleteGuildToolStripMenuItem.Click += new System.EventHandler(this.deleteGuildToolStripMenuItem_Click);
             // 
             // viewDescriptionToolStripMenuItem
             // 
             this.viewDescriptionToolStripMenuItem.Name = "viewDescriptionToolStripMenuItem";
-            this.viewDescriptionToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
+            this.viewDescriptionToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.viewDescriptionToolStripMenuItem.Text = "View Description";
             this.viewDescriptionToolStripMenuItem.Click += new System.EventHandler(this.viewDescriptionToolStripMenuItem_Click);
             // 
@@ -292,21 +277,21 @@
             // newChannelToolStripMenuItem
             // 
             this.newChannelToolStripMenuItem.Name = "newChannelToolStripMenuItem";
-            this.newChannelToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
+            this.newChannelToolStripMenuItem.Size = new System.Drawing.Size(233, 22);
             this.newChannelToolStripMenuItem.Text = "New Channel";
             this.newChannelToolStripMenuItem.Click += new System.EventHandler(this.newChannelToolStripMenuItem_Click);
             // 
             // renameChannelToolStripMenuItem
             // 
             this.renameChannelToolStripMenuItem.Name = "renameChannelToolStripMenuItem";
-            this.renameChannelToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
+            this.renameChannelToolStripMenuItem.Size = new System.Drawing.Size(233, 22);
             this.renameChannelToolStripMenuItem.Text = "Rename Channel";
             this.renameChannelToolStripMenuItem.Click += new System.EventHandler(this.renameChannelToolStripMenuItem_Click);
             // 
             // deleteChannelToolStripMenuItem
             // 
             this.deleteChannelToolStripMenuItem.Name = "deleteChannelToolStripMenuItem";
-            this.deleteChannelToolStripMenuItem.Size = new System.Drawing.Size(228, 22);
+            this.deleteChannelToolStripMenuItem.Size = new System.Drawing.Size(233, 22);
             this.deleteChannelToolStripMenuItem.Text = "Delete Channel";
             // 
             // changeChannelPermissions
@@ -316,26 +301,29 @@
             this.adminToolStripMenuItem,
             this.anyoneToolStripMenuItem});
             this.changeChannelPermissions.Name = "changeChannelPermissions";
-            this.changeChannelPermissions.Size = new System.Drawing.Size(228, 22);
-            this.changeChannelPermissions.Text = "Change Channel Permissions";
+            this.changeChannelPermissions.Size = new System.Drawing.Size(233, 22);
+            this.changeChannelPermissions.Text = "Channel Message Permissions";
             // 
             // ownerToolStripMenuItem
             // 
             this.ownerToolStripMenuItem.Name = "ownerToolStripMenuItem";
             this.ownerToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
             this.ownerToolStripMenuItem.Text = "Owner";
+            this.ownerToolStripMenuItem.Click += new System.EventHandler(this.ownerToolStripMenuItem_Click);
             // 
             // adminToolStripMenuItem
             // 
             this.adminToolStripMenuItem.Name = "adminToolStripMenuItem";
             this.adminToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
             this.adminToolStripMenuItem.Text = "Admin";
+            this.adminToolStripMenuItem.Click += new System.EventHandler(this.adminToolStripMenuItem_Click);
             // 
             // anyoneToolStripMenuItem
             // 
             this.anyoneToolStripMenuItem.Name = "anyoneToolStripMenuItem";
             this.anyoneToolStripMenuItem.Size = new System.Drawing.Size(115, 22);
             this.anyoneToolStripMenuItem.Text = "Anyone";
+            this.anyoneToolStripMenuItem.Click += new System.EventHandler(this.anyoneToolStripMenuItem_Click);
             // 
             // pnlMessages
             // 
@@ -432,6 +420,13 @@
             this.btnJumpToPresent.UseVisualStyleBackColor = true;
             this.btnJumpToPresent.Click += new System.EventHandler(this.btnJumpToPresent_Click);
             // 
+            // leaveGuildToolStripMenuItem
+            // 
+            this.leaveGuildToolStripMenuItem.Name = "leaveGuildToolStripMenuItem";
+            this.leaveGuildToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.leaveGuildToolStripMenuItem.Text = "Leave Guild";
+            this.leaveGuildToolStripMenuItem.Click += new System.EventHandler(this.leaveGuildToolStripMenuItem_Click);
+            // 
             // frmChat
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -476,10 +471,8 @@
         private ToolStripMenuItem accountOptionsToolStripMenuItem;
         private ToolStripMenuItem createGuildToolStripMenuItem;
         private ToolStripMenuItem joinGuildFromCodeToolStripMenuItem;
-        private ToolStripMenuItem privateChatsToolStripMenuItem;
         private Panel pnlMessages;
         private ToolStripMenuItem guildSettingsToolStripMenuItem;
-        private ToolStripMenuItem createDMToolStripMenuItem;
         private ToolStripMenuItem listUsersToolStripMenuItem;
         private ToolStripMenuItem invitesToolStripMenuItem;
         private ToolStripMenuItem createInviteToolStripMenuItem;
@@ -506,5 +499,6 @@
         private Button btnJumpToPresent;
         private ToolStripMenuItem uploadProfilePicToolStripMenuItem;
         private TextBox txtGuildMessage;
+        private ToolStripMenuItem leaveGuildToolStripMenuItem;
     }
 }
