@@ -717,6 +717,7 @@ namespace NeaClient
                 }
                 else
                 {
+                    await fillGuildSidebar();
                     utility.requestGuildKey(guilds[activeGuildIndex].ID, activeUser, guilds[activeGuildIndex].KeyDigest);
                 }
             }
@@ -732,7 +733,6 @@ namespace NeaClient
         {
             string inviteCode = Microsoft.VisualBasic.Interaction.InputBox("Join Guild", "Enter the invite code:");
             if (!string.IsNullOrEmpty(inviteCode)) await joinGuild(inviteCode);
-            fillGuildSidebar();
         }
 
         private async Task createInvite(object sender, EventArgs e)
@@ -1097,17 +1097,17 @@ namespace NeaClient
             }
         }
 
-        private void ownerToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void ownerToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (activeChannelID != null) setChannnelType("Owner");
+            if (activeChannelID != null) await setChannnelType("Owner");
         }
-        private void anyoneToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void anyoneToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (activeChannelID != null) setChannnelType("Admin");
+            if (activeChannelID != null) await setChannnelType("Admin");
         }
-        private void adminToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void adminToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            if (activeChannelID != null) setChannnelType("Unpriviliged");
+            if (activeChannelID != null) await setChannnelType("Unpriviliged");
         }
         private async Task setChannnelType(string permissionLevel)
         {
@@ -1120,7 +1120,7 @@ namespace NeaClient
                 {
                     token = activeUser.Token,
                     channelID = activeChannelID,
-                    channelType = permissionLevel
+                    channelPermissions = permissionLevel
                 };
                 response = await client.PostAsJsonAsync("/api/guild/channel/setPermissions", content);
                 successfullConnection = true;
@@ -1159,7 +1159,7 @@ namespace NeaClient
                     var content = new
                     {
                         token = activeUser.Token,
-                        guildID = guilds[activeGuildIndex]
+                        guildID = guilds[activeGuildIndex].ID
                     };
                     response = await client.PostAsJsonAsync("/api/guild/leave", content);
                     successfullConnection = true;
@@ -1176,6 +1176,56 @@ namespace NeaClient
                     if (jsonResponseObject != null && jsonResponseObject.ContainsKey("errcode"))
                     {
                         showError(jsonResponseObject);
+                    }
+                    else
+                    {
+                        fillGuildSidebar();
+                        tblMessages.Controls.Clear();
+                    }
+                }
+                else
+                {
+                    if (!menuStrip1.Items["offlineIndicator"].Visible)
+                    {
+                        MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
+                    }
+                }
+            }
+        }
+
+        private async void deleteChannelToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (activeGuildIndex != -1 && MessageBox.Show("Warning!", "Are you sure you want to delete this channel?", MessageBoxButtons.YesNo) == DialogResult.Yes) ;
+            {
+                HttpResponseMessage response = new HttpResponseMessage();
+                bool successfullConnection;
+                try
+                {
+                    var content = new
+                    {
+                        token = activeUser.Token,
+                        channelID = activeChannelID
+                    };
+                    response = await client.PostAsJsonAsync("/api/guild/channel/delete", content);
+                    successfullConnection = true;
+                }
+                catch
+                {
+                    successfullConnection = false;
+                }
+                if (successfullConnection)
+                {
+                    menuStrip1.Items["offlineIndicator"].Visible = false;
+                    var jsonResponse = await response.Content.ReadAsStringAsync();
+                    dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
+                    if (jsonResponseObject != null && jsonResponseObject.ContainsKey("errcode"))
+                    {
+                        showError(jsonResponseObject);
+                    }
+                    else
+                    {
+                        fillGuildSidebar();
+                        tblMessages.Controls.Clear();
                     }
                 }
                 else

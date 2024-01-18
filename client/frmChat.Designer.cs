@@ -42,6 +42,7 @@
             this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createGuildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.joinGuildFromCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.leaveGuildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.guildSettingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.listUsersToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.invitesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -66,7 +67,6 @@
             this.btnViewOlderMessages = new System.Windows.Forms.Button();
             this.btnViewNewerMessages = new System.Windows.Forms.Button();
             this.btnJumpToPresent = new System.Windows.Forms.Button();
-            this.leaveGuildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlGuilds.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlMessages.SuspendLayout();
@@ -195,16 +195,23 @@
             // createGuildToolStripMenuItem
             // 
             this.createGuildToolStripMenuItem.Name = "createGuildToolStripMenuItem";
-            this.createGuildToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.createGuildToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
             this.createGuildToolStripMenuItem.Text = "Create Guild";
             this.createGuildToolStripMenuItem.Click += new System.EventHandler(this.createGuildToolStripMenuItem_Click);
             // 
             // joinGuildFromCodeToolStripMenuItem
             // 
             this.joinGuildFromCodeToolStripMenuItem.Name = "joinGuildFromCodeToolStripMenuItem";
-            this.joinGuildFromCodeToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.joinGuildFromCodeToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
             this.joinGuildFromCodeToolStripMenuItem.Text = "Join Guild";
             this.joinGuildFromCodeToolStripMenuItem.Click += new System.EventHandler(this.joinGuildFromCodeToolStripMenuItem_Click);
+            // 
+            // leaveGuildToolStripMenuItem
+            // 
+            this.leaveGuildToolStripMenuItem.Name = "leaveGuildToolStripMenuItem";
+            this.leaveGuildToolStripMenuItem.Size = new System.Drawing.Size(139, 22);
+            this.leaveGuildToolStripMenuItem.Text = "Leave Guild";
+            this.leaveGuildToolStripMenuItem.Click += new System.EventHandler(this.leaveGuildToolStripMenuItem_Click);
             // 
             // guildSettingsToolStripMenuItem
             // 
@@ -221,35 +228,35 @@
             // listUsersToolStripMenuItem
             // 
             this.listUsersToolStripMenuItem.Name = "listUsersToolStripMenuItem";
-            this.listUsersToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.listUsersToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.listUsersToolStripMenuItem.Text = "List Users";
             this.listUsersToolStripMenuItem.Click += new System.EventHandler(this.listUsersToolStripMenuItem_Click);
             // 
             // invitesToolStripMenuItem
             // 
             this.invitesToolStripMenuItem.Name = "invitesToolStripMenuItem";
-            this.invitesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.invitesToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.invitesToolStripMenuItem.Text = "Manage Invites";
             this.invitesToolStripMenuItem.Click += new System.EventHandler(this.invitesToolStripMenuItem_Click);
             // 
             // editGuildStripMenuItem
             // 
             this.editGuildStripMenuItem.Name = "editGuildStripMenuItem";
-            this.editGuildStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.editGuildStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.editGuildStripMenuItem.Text = "Edit Guild";
             this.editGuildStripMenuItem.Click += new System.EventHandler(this.editGuildStripMenuItem_Click);
             // 
             // deleteGuildToolStripMenuItem
             // 
             this.deleteGuildToolStripMenuItem.Name = "deleteGuildToolStripMenuItem";
-            this.deleteGuildToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.deleteGuildToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.deleteGuildToolStripMenuItem.Text = "Delete Guild";
             this.deleteGuildToolStripMenuItem.Click += new System.EventHandler(this.deleteGuildToolStripMenuItem_Click);
             // 
             // viewDescriptionToolStripMenuItem
             // 
             this.viewDescriptionToolStripMenuItem.Name = "viewDescriptionToolStripMenuItem";
-            this.viewDescriptionToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.viewDescriptionToolStripMenuItem.Size = new System.Drawing.Size(162, 22);
             this.viewDescriptionToolStripMenuItem.Text = "View Description";
             this.viewDescriptionToolStripMenuItem.Click += new System.EventHandler(this.viewDescriptionToolStripMenuItem_Click);
             // 
@@ -293,6 +300,7 @@
             this.deleteChannelToolStripMenuItem.Name = "deleteChannelToolStripMenuItem";
             this.deleteChannelToolStripMenuItem.Size = new System.Drawing.Size(233, 22);
             this.deleteChannelToolStripMenuItem.Text = "Delete Channel";
+            this.deleteChannelToolStripMenuItem.Click += new System.EventHandler(this.deleteChannelToolStripMenuItem_Click);
             // 
             // changeChannelPermissions
             // 
@@ -419,13 +427,6 @@
             this.btnJumpToPresent.Text = "Jump To Present >>";
             this.btnJumpToPresent.UseVisualStyleBackColor = true;
             this.btnJumpToPresent.Click += new System.EventHandler(this.btnJumpToPresent_Click);
-            // 
-            // leaveGuildToolStripMenuItem
-            // 
-            this.leaveGuildToolStripMenuItem.Name = "leaveGuildToolStripMenuItem";
-            this.leaveGuildToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.leaveGuildToolStripMenuItem.Text = "Leave Guild";
-            this.leaveGuildToolStripMenuItem.Click += new System.EventHandler(this.leaveGuildToolStripMenuItem_Click);
             // 
             // frmChat
             // 
