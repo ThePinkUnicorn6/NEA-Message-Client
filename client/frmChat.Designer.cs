@@ -39,6 +39,8 @@
             this.fileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.accountOptionsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.uploadProfilePicToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.logoutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.copyPrivateKeyToClipboardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.createGuildToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.joinGuildFromCodeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -67,7 +69,6 @@
             this.btnViewOlderMessages = new System.Windows.Forms.Button();
             this.btnViewNewerMessages = new System.Windows.Forms.Button();
             this.btnJumpToPresent = new System.Windows.Forms.Button();
-            this.logoutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlGuilds.SuspendLayout();
             this.menuStrip1.SuspendLayout();
             this.pnlMessages.SuspendLayout();
@@ -79,7 +80,7 @@
             | System.Windows.Forms.AnchorStyles.Left)));
             this.pnlGuilds.Controls.Add(this.tvGuilds);
             this.pnlGuilds.Location = new System.Drawing.Point(22, 58);
-            this.pnlGuilds.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.pnlGuilds.Margin = new System.Windows.Forms.Padding(6);
             this.pnlGuilds.Name = "pnlGuilds";
             this.pnlGuilds.Size = new System.Drawing.Size(470, 1370);
             this.pnlGuilds.TabIndex = 0;
@@ -90,7 +91,7 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.tvGuilds.Location = new System.Drawing.Point(6, 6);
-            this.tvGuilds.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.tvGuilds.Margin = new System.Windows.Forms.Padding(6);
             this.tvGuilds.Name = "tvGuilds";
             this.tvGuilds.ShowPlusMinus = false;
             this.tvGuilds.Size = new System.Drawing.Size(455, 1154);
@@ -102,7 +103,7 @@
             this.txtMessageText.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.txtMessageText.Location = new System.Drawing.Point(565, 1175);
-            this.txtMessageText.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.txtMessageText.Margin = new System.Windows.Forms.Padding(6);
             this.txtMessageText.Multiline = true;
             this.txtMessageText.Name = "txtMessageText";
             this.txtMessageText.Size = new System.Drawing.Size(1254, 45);
@@ -118,7 +119,7 @@
             this.tblMessages.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle());
             this.tblMessages.Dock = System.Windows.Forms.DockStyle.Top;
             this.tblMessages.Location = new System.Drawing.Point(0, 0);
-            this.tblMessages.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.tblMessages.Margin = new System.Windows.Forms.Padding(6);
             this.tblMessages.Name = "tblMessages";
             this.tblMessages.RowCount = 1;
             this.tblMessages.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 100F));
@@ -129,7 +130,7 @@
             // 
             this.btnSend.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.btnSend.Location = new System.Drawing.Point(1833, 1173);
-            this.btnSend.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.btnSend.Margin = new System.Windows.Forms.Padding(6);
             this.btnSend.Name = "btnSend";
             this.btnSend.Size = new System.Drawing.Size(139, 49);
             this.btnSend.TabIndex = 3;
@@ -141,7 +142,7 @@
             // 
             this.btnEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnEditor.Location = new System.Drawing.Point(503, 1175);
-            this.btnEditor.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.btnEditor.Margin = new System.Windows.Forms.Padding(6);
             this.btnEditor.Name = "btnEditor";
             this.btnEditor.Size = new System.Drawing.Size(50, 49);
             this.btnEditor.TabIndex = 5;
@@ -162,7 +163,7 @@
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(11, 4, 0, 4);
             this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStrip1.Size = new System.Drawing.Size(1995, 48);
+            this.menuStrip1.Size = new System.Drawing.Size(1995, 44);
             this.menuStrip1.TabIndex = 6;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -171,7 +172,7 @@
             this.fileToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.accountOptionsToolStripMenuItem});
             this.fileToolStripMenuItem.Name = "fileToolStripMenuItem";
-            this.fileToolStripMenuItem.Size = new System.Drawing.Size(120, 40);
+            this.fileToolStripMenuItem.Size = new System.Drawing.Size(120, 36);
             this.fileToolStripMenuItem.Text = "Settings";
             this.fileToolStripMenuItem.Click += new System.EventHandler(this.fileToolStripMenuItem_Click);
             // 
@@ -179,17 +180,32 @@
             // 
             this.accountOptionsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.uploadProfilePicToolStripMenuItem,
-            this.logoutToolStripMenuItem});
+            this.logoutToolStripMenuItem,
+            this.copyPrivateKeyToClipboardToolStripMenuItem});
             this.accountOptionsToolStripMenuItem.Name = "accountOptionsToolStripMenuItem";
-            this.accountOptionsToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.accountOptionsToolStripMenuItem.Size = new System.Drawing.Size(325, 44);
             this.accountOptionsToolStripMenuItem.Text = "Account Options";
             // 
             // uploadProfilePicToolStripMenuItem
             // 
             this.uploadProfilePicToolStripMenuItem.Name = "uploadProfilePicToolStripMenuItem";
-            this.uploadProfilePicToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
+            this.uploadProfilePicToolStripMenuItem.Size = new System.Drawing.Size(466, 44);
             this.uploadProfilePicToolStripMenuItem.Text = "Upload ProfilePic";
             this.uploadProfilePicToolStripMenuItem.Click += new System.EventHandler(this.uploadProfilePicToolStripMenuItem_Click);
+            // 
+            // logoutToolStripMenuItem
+            // 
+            this.logoutToolStripMenuItem.Name = "logoutToolStripMenuItem";
+            this.logoutToolStripMenuItem.Size = new System.Drawing.Size(466, 44);
+            this.logoutToolStripMenuItem.Text = "Logout";
+            this.logoutToolStripMenuItem.Click += new System.EventHandler(this.logoutToolStripMenuItem_Click);
+            // 
+            // copyPrivateKeyToClipboardToolStripMenuItem
+            // 
+            this.copyPrivateKeyToClipboardToolStripMenuItem.Name = "copyPrivateKeyToClipboardToolStripMenuItem";
+            this.copyPrivateKeyToClipboardToolStripMenuItem.Size = new System.Drawing.Size(466, 44);
+            this.copyPrivateKeyToClipboardToolStripMenuItem.Text = "Copy Private Key to Clipboard";
+            this.copyPrivateKeyToClipboardToolStripMenuItem.Click += new System.EventHandler(this.copyPrivateKeyToClipboardToolStripMenuItem_Click);
             // 
             // testToolStripMenuItem
             // 
@@ -198,7 +214,7 @@
             this.joinGuildFromCodeToolStripMenuItem,
             this.leaveGuildToolStripMenuItem});
             this.testToolStripMenuItem.Name = "testToolStripMenuItem";
-            this.testToolStripMenuItem.Size = new System.Drawing.Size(100, 40);
+            this.testToolStripMenuItem.Size = new System.Drawing.Size(100, 36);
             this.testToolStripMenuItem.Text = "Guilds";
             // 
             // createGuildToolStripMenuItem
@@ -231,7 +247,7 @@
             this.deleteGuildToolStripMenuItem,
             this.viewDescriptionToolStripMenuItem});
             this.guildSettingsToolStripMenuItem.Name = "guildSettingsToolStripMenuItem";
-            this.guildSettingsToolStripMenuItem.Size = new System.Drawing.Size(183, 40);
+            this.guildSettingsToolStripMenuItem.Size = new System.Drawing.Size(183, 36);
             this.guildSettingsToolStripMenuItem.Text = "Guild Settings";
             // 
             // listUsersToolStripMenuItem
@@ -287,7 +303,7 @@
             this.deleteChannelToolStripMenuItem,
             this.changeChannelPermissions});
             this.channelSettings.Name = "channelSettings";
-            this.channelSettings.Size = new System.Drawing.Size(215, 40);
+            this.channelSettings.Size = new System.Drawing.Size(215, 36);
             this.channelSettings.Text = "Channel Settings";
             // 
             // newChannelToolStripMenuItem
@@ -353,7 +369,7 @@
             this.pnlMessages.Controls.Add(this.txtKeyWarning);
             this.pnlMessages.Controls.Add(this.tblMessages);
             this.pnlMessages.Location = new System.Drawing.Point(500, 126);
-            this.pnlMessages.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.pnlMessages.Margin = new System.Windows.Forms.Padding(6);
             this.pnlMessages.Name = "pnlMessages";
             this.pnlMessages.Size = new System.Drawing.Size(1473, 1037);
             this.pnlMessages.TabIndex = 7;
@@ -366,7 +382,7 @@
             this.txtGuildMessage.BackColor = System.Drawing.SystemColors.Info;
             this.txtGuildMessage.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtGuildMessage.Location = new System.Drawing.Point(507, 343);
-            this.txtGuildMessage.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.txtGuildMessage.Margin = new System.Windows.Forms.Padding(6);
             this.txtGuildMessage.Multiline = true;
             this.txtGuildMessage.Name = "txtGuildMessage";
             this.txtGuildMessage.Size = new System.Drawing.Size(511, 335);
@@ -383,7 +399,7 @@
             this.txtKeyWarning.BackColor = System.Drawing.SystemColors.Info;
             this.txtKeyWarning.Font = new System.Drawing.Font("Segoe UI", 15.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point);
             this.txtKeyWarning.Location = new System.Drawing.Point(507, 343);
-            this.txtKeyWarning.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.txtKeyWarning.Margin = new System.Windows.Forms.Padding(6);
             this.txtKeyWarning.Multiline = true;
             this.txtKeyWarning.Name = "txtKeyWarning";
             this.txtKeyWarning.Size = new System.Drawing.Size(511, 335);
@@ -411,7 +427,7 @@
             // btnViewOlderMessages
             // 
             this.btnViewOlderMessages.Location = new System.Drawing.Point(500, 64);
-            this.btnViewOlderMessages.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.btnViewOlderMessages.Margin = new System.Windows.Forms.Padding(6);
             this.btnViewOlderMessages.Name = "btnViewOlderMessages";
             this.btnViewOlderMessages.Size = new System.Drawing.Size(279, 49);
             this.btnViewOlderMessages.TabIndex = 8;
@@ -423,7 +439,7 @@
             // 
             this.btnViewNewerMessages.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnViewNewerMessages.Location = new System.Drawing.Point(1423, 64);
-            this.btnViewNewerMessages.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.btnViewNewerMessages.Margin = new System.Windows.Forms.Padding(6);
             this.btnViewNewerMessages.Name = "btnViewNewerMessages";
             this.btnViewNewerMessages.Size = new System.Drawing.Size(293, 49);
             this.btnViewNewerMessages.TabIndex = 8;
@@ -435,20 +451,13 @@
             // 
             this.btnJumpToPresent.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnJumpToPresent.Location = new System.Drawing.Point(1727, 64);
-            this.btnJumpToPresent.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.btnJumpToPresent.Margin = new System.Windows.Forms.Padding(6);
             this.btnJumpToPresent.Name = "btnJumpToPresent";
             this.btnJumpToPresent.Size = new System.Drawing.Size(245, 49);
             this.btnJumpToPresent.TabIndex = 8;
             this.btnJumpToPresent.Text = "Jump To Present >>";
             this.btnJumpToPresent.UseVisualStyleBackColor = true;
             this.btnJumpToPresent.Click += new System.EventHandler(this.btnJumpToPresent_Click);
-            // 
-            // logoutToolStripMenuItem
-            // 
-            this.logoutToolStripMenuItem.Name = "logoutToolStripMenuItem";
-            this.logoutToolStripMenuItem.Size = new System.Drawing.Size(359, 44);
-            this.logoutToolStripMenuItem.Text = "Logout";
-            this.logoutToolStripMenuItem.Click += new System.EventHandler(this.logoutToolStripMenuItem_Click);
             // 
             // frmChat
             // 
@@ -465,8 +474,8 @@
             this.Controls.Add(this.pnlGuilds);
             this.Controls.Add(this.menuStrip1);
             this.MainMenuStrip = this.menuStrip1;
-            this.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
-            this.MinimumSize = new System.Drawing.Size(1631, 914);
+            this.Margin = new System.Windows.Forms.Padding(6);
+            this.MinimumSize = new System.Drawing.Size(1623, 877);
             this.Name = "frmChat";
             this.Text = "Home";
             this.Load += new System.EventHandler(this.frmChat_Load);
@@ -525,5 +534,6 @@
         private TextBox txtGuildMessage;
         private ToolStripMenuItem leaveGuildToolStripMenuItem;
         private ToolStripMenuItem logoutToolStripMenuItem;
+        private ToolStripMenuItem copyPrivateKeyToClipboardToolStripMenuItem;
     }
 }

@@ -44,7 +44,7 @@ namespace NeaClient
             }
             tokens = File.ReadLines(tokenFile).Select(x => x.Split(',')).ToList();
 
-            if (string.IsNullOrEmpty(activeUser.Token) | tokens.Count == 0) // If the login page has not added any tokens, the user must have closed it, so close the program.
+            if (tokens.Count == 0) // If the login page has not added any tokens, the user must have closed it, so close the program.
             {
                 this.Close();
                 return; // Return, otherwise it starts running the next code and errors.
@@ -496,8 +496,6 @@ namespace NeaClient
             if (profilePic.Count() > 0) displayImage(profilePic, 0, row);
             if (message.Type == 1) displayText(message.ToString(), row);
             else if (message.Type == 2) displayImage(message.Content, 1, row);
-
-            // TODO: work out how to scroll the message into view
         }
         private void displayText(string messageText, int row)
         {
@@ -738,44 +736,6 @@ namespace NeaClient
             if (!string.IsNullOrEmpty(inviteCode)) await joinGuild(inviteCode);
         }
 
-        private async Task createInvite(object sender, EventArgs e)
-        {
-            HttpResponseMessage response = new HttpResponseMessage();
-            bool successfullConnection;
-            try
-            {
-                var content = new
-                {
-                    token = activeUser.Token,
-                    guildID = guilds[activeGuildIndex].ID
-                };
-                response = await client.PostAsJsonAsync("/api/guild/createInvite", content);
-                successfullConnection = true;
-            }
-            catch
-            {
-                successfullConnection = false;
-            }
-            if (successfullConnection)
-            {
-                menuStrip1.Items["offlineIndicator"].Visible = false;
-                var jsonResponse = await response.Content.ReadAsStringAsync();
-                dynamic jsonResponseObject = JsonConvert.DeserializeObject<dynamic>(jsonResponse);
-                if (jsonResponseObject.ContainsKey("errcode"))
-                {
-                    showError(jsonResponseObject);
-                }
-            }
-            else
-            {
- 
-                if (!menuStrip1.Items["offlineIndicator"].Visible)
-                {
-                    MessageBox.Show("Could not connect to: " + activeUser.ServerURL, "Connection Error.");
-                }
-            }
-        }
-
         private void invitesToolStripMenuItem_Click(object sender, EventArgs e)
         {
             if (activeGuildIndex != -1)
@@ -800,19 +760,20 @@ namespace NeaClient
             newerMessages = await fetchMessages(activeChannelID, afterMessageID: afterMessageID); // Fetches the next 50 messages after the last currently displayed one
 
             int i;
+            int oldMessageCount;
             tblMessages.SuspendLayout();
-            if (newerMessages.Count > 0 && clearOld)
+            if (newerMessages.Count > 0 && clearOld) // If there are new messages and the messages need to be cleared
             {
-                i = 0;
+                oldMessageCount = 0;
                 tblMessages.Controls.Clear();
                 messages = newerMessages;
             }
             else
             {
-                i = messages.Count - 1;
+                oldMessageCount = messages.Count;
                 messages.AddRange(newerMessages);
             }
-            for (i = i; i < messages.Count - 1; i++)
+            for (i = oldMessageCount; i < newerMessages.Count + oldMessageCount; i++)
             {
                 messages[i].Decrypt(guilds[activeGuildIndex].Key);
                 displayMessage(messages[i], i);
@@ -866,18 +827,18 @@ namespace NeaClient
 
         private async void tmrMessageCheck_Tick(object sender, EventArgs e)
         {
-            //if (activeChannelID != null)
-            //{
-            //    await modifyMsgListSS.WaitAsync();
-            //    try
-            //    {
-            //        await displayNewerMessages();
-            //    }
-            //    finally
-            //    {
-            //        modifyMsgListSS.Release();
-            //    }
-            //}
+            if (activeChannelID != null)
+            {
+                await modifyMsgListSS.WaitAsync();
+                try
+                {
+                    await displayNewerMessages();
+                }
+                finally
+                {
+                    modifyMsgListSS.Release();
+                }
+            }
         }
 
         private async void btnEditor_Click(object sender, EventArgs e)
@@ -1248,6 +1209,11 @@ namespace NeaClient
                 File.WriteAllText(tokenFile, "");
                 addLogin();
             }
+        }
+
+        private void copyPrivateKeyToClipboardToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Clipboard.SetText(Convert.ToBase64String(activeUser.PrivateKey));
         }
     }
 }
