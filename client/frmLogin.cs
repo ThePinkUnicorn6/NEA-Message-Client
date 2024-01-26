@@ -21,6 +21,11 @@ namespace NeaClient
         private async void btnLogin_Click(object sender, EventArgs e)
         {
             string passHash = hash(txtPassword.Text);
+            if (txtServerAddress.Text.Contains(','))
+            {
+                MessageBox.Show("Server address cannot contain commas.");
+                return;
+            }
             server = txtServerAddress.Text.Take(7).ToArray() == "http://".ToArray() ? txtServerAddress.Text.Remove(0, 7) : txtServerAddress.Text; // Remove http:// if it is in the url.
             HttpResponseMessage response;
             try
@@ -64,12 +69,16 @@ namespace NeaClient
             {
                 return;
             }
+            if (txtServerAddress.Text.Contains(','))
+            {
+                MessageBox.Show("Server address cannot contain commas.");
+                return;
+            }
             string passHash = hash(txtPassword.Text);
             server = txtServerAddress.Text.ToLower().Take(7).ToArray() == "http://".ToArray() ? txtServerAddress.Text.Remove(0, 7) : txtServerAddress.Text; // Remove http:// if it is in the url.
             HttpResponseMessage response;
             try
             {
-                //TODO: Check adress contains no commas
                 client = new() { BaseAddress = new Uri("http://" + server) };
                 user = new User
                 {
