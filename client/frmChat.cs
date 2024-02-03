@@ -719,7 +719,6 @@ namespace NeaClient
                 else
                 {
                     await fillGuildSidebar();
-                    utility.requestGuildKey(guilds[activeGuildIndex].ID, activeUser, guilds[activeGuildIndex].KeyDigest);
                 }
             }
             else
@@ -776,7 +775,7 @@ namespace NeaClient
             for (i = oldMessageCount; i < newerMessages.Count + oldMessageCount; i++)
             {
                 messages[i].Decrypt(guilds[activeGuildIndex].Key);
-                displayMessage(messages[i], i);
+                displayMessage(messages[i], i+1);
             }
             tblMessages.ResumeLayout();
         }
